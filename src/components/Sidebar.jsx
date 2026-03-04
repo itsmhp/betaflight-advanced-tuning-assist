@@ -1,0 +1,84 @@
+import { useState } from 'react';
+import { NavLink } from 'react-router-dom';
+import {
+  Waypoints, HeartPulse, BookMarked, Cpu, Terminal,
+  Globe, ChevronDown
+} from 'lucide-react';
+import { useLang } from '../i18n/LangContext';
+import { LANGUAGES } from '../i18n/translations';
+
+const NAV_ITEMS = [
+  { path: '/tune',     labelKey: 'tune_quad',       icon: Waypoints,  color: 'text-violet-400' },
+  { path: '/',         labelKey: 'adv_pid_health',  icon: HeartPulse, color: 'text-violet-300', end: true },
+  { path: '/presets',  labelKey: 'presets',         icon: BookMarked, color: 'text-cyan-400' },
+  { path: '/my-drone', labelKey: 'my_drone',        icon: Cpu,        color: 'text-cyan-300' },
+  { path: '/serial',   labelKey: 'serial_cli',      icon: Terminal,   color: 'text-green-400' },
+];
+
+export default function Sidebar() {
+  const { lang, setLang, t } = useLang();
+  const [langOpen, setLangOpen] = useState(false);
+  const currentLang = LANGUAGES.find(l => l.code === lang);
+
+  return (
+    <nav className="w-56 flex-shrink-0 bg-[#0c0b14]/90 border-r border-violet-900/20 flex flex-col h-full overflow-y-auto">
+      {/* Header */}
+      <div className="p-4 border-b border-violet-900/20">
+        <h1 className="text-sm font-bold tracking-wide accent-gradient">BETAFLIGHT</h1>
+        <h2 className="text-xs text-gray-400">Tuning Assist <span className="text-violet-400">by iFlyQuad</span></h2>
+      </div>
+
+      {/* Nav Items */}
+      <div className="flex-1 py-2">
+        {NAV_ITEMS.map(item => (
+          <NavLink
+            key={item.path}
+            to={item.path}
+            end={item.end}
+            className={({ isActive }) =>
+              `flex items-center gap-2.5 px-4 py-2 text-sm transition-colors ${
+                isActive
+                  ? 'bg-violet-500/10 text-violet-300 border-l-2 border-violet-400'
+                  : 'text-gray-400 hover:text-gray-200 hover:bg-violet-900/15 border-l-2 border-transparent'
+              }`
+            }
+          >
+            <item.icon size={16} className={item.color} />
+            <span className="truncate">{t(item.labelKey)}</span>
+          </NavLink>
+        ))}
+      </div>
+
+      {/* Language Switcher */}
+      <div className="p-3 border-t border-violet-900/20 relative">
+        <button
+          onClick={() => setLangOpen(o => !o)}
+          className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs text-gray-400 hover:bg-violet-900/20 hover:text-gray-200 transition-colors"
+        >
+          <Globe size={13} className="text-violet-400 flex-shrink-0" />
+          <span className="flex-1 text-left">{currentLang?.flag} {currentLang?.label}</span>
+          <ChevronDown size={12} className={`transition-transform ${langOpen ? 'rotate-180' : ''}`} />
+        </button>
+        {langOpen && (
+          <div className="absolute bottom-full left-2 right-2 mb-1 bg-[#14112a] border border-violet-900/40 rounded-lg shadow-xl overflow-hidden z-50">
+            {LANGUAGES.map(l => (
+              <button
+                key={l.code}
+                onClick={() => { setLang(l.code); setLangOpen(false); }}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left transition-colors ${
+                  lang === l.code
+                    ? 'bg-violet-500/20 text-violet-300'
+                    : 'text-gray-400 hover:bg-violet-900/20 hover:text-gray-200'
+                }`}
+              >
+                <span>{l.flag}</span>
+                <span>{l.label}</span>
+              </button>
+            ))}
+          </div>
+        )}
+        <p className="text-[10px] text-gray-700 text-center mt-1">v1.0 — iFlyQuad</p>
+      </div>
+    </nav>
+  );
+}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   Waypoints, HeartPulse, BookMarked, Cpu, Terminal,
@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useLang } from '../i18n/LangContext';
 import { LANGUAGES } from '../i18n/translations';
+import { loadPipelineState, countCompleted, TUNING_STAGES } from '../lib/tuningPipeline';
 
 const NAV_ITEMS = [
   { path: '/tune',     labelKey: 'tune_quad',       icon: Waypoints,  color: 'text-violet-400' },
@@ -19,6 +20,20 @@ export default function Sidebar() {
   const { lang, setLang, t } = useLang();
   const [langOpen, setLangOpen] = useState(false);
   const currentLang = LANGUAGES.find(l => l.code === lang);
+
+  // Read pipeline progress from localStorage on mount + interval
+  const [pipelineProgress, setPipelineProgress] = useState({ completed: 0, total: TUNING_STAGES.length });
+  useEffect(() => {
+    const read = () => {
+      const state = loadPipelineState();
+      if (state?.stages) {
+        setPipelineProgress({ completed: countCompleted(state.stages), total: state.stages.length });
+      }
+    };
+    read();
+    const id = setInterval(read, 2000);
+    return () => clearInterval(id);
+  }, []);
 
   return (
     <nav className="w-56 flex-shrink-0 bg-[#0c0b14]/90 border-r border-violet-900/20 flex flex-col h-full overflow-y-auto">
@@ -44,7 +59,16 @@ export default function Sidebar() {
             }
           >
             <item.icon size={16} className={item.color} />
-            <span className="truncate">{t(item.labelKey)}</span>
+            <span className="truncate flex-1">{t(item.labelKey)}</span>
+            {item.path === '/tune' && pipelineProgress.completed > 0 && (
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium tabular-nums ${
+                pipelineProgress.completed >= pipelineProgress.total
+                  ? 'bg-emerald-900/40 text-emerald-400'
+                  : 'bg-violet-900/40 text-violet-300'
+              }`}>
+                {pipelineProgress.completed}/{pipelineProgress.total}
+              </span>
+            )}
           </NavLink>
         ))}
       </div>

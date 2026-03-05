@@ -111,20 +111,36 @@ export function analyzeFilters(blackboxData, cliParams) {
   // Generate CLI changes
   const cliChanges = {};
   const current = cliParams || {};
+  const recommendations = [];
+
+  const pushRec = (param, currentValue, suggestedValue, message) => {
+    recommendations.push({
+      message,
+      param,
+      currentValue,
+      suggestedValue,
+      command: `set ${param} = ${suggestedValue}`,
+      severity: 'info',
+    });
+  };
 
   if (gyroLpfRec !== (current.gyroLpf2?.staticHz ?? 0)) {
     cliChanges.gyro_lpf2_static_hz = gyroLpfRec;
+    pushRec('gyro_lpf2_static_hz', current.gyroLpf2?.staticHz ?? null, gyroLpfRec, 'Adjust gyro LPF2 for measured noise level.');
   }
   if (dtermLpfRec !== (current.dtermLpf1?.staticHz ?? 0)) {
     cliChanges.dterm_lpf1_static_hz = dtermLpfRec;
     cliChanges.dterm_lpf1_dyn_min_hz = dtermLpfRec;
     cliChanges.dterm_lpf1_dyn_max_hz = dtermLpfRec * 2;
+    pushRec('dterm_lpf1_static_hz', current.dtermLpf1?.staticHz ?? null, dtermLpfRec, 'Adjust D-term LPF for noise control.');
   }
   if (dynNotchMinHz !== (current.dynNotch?.minHz ?? 150)) {
     cliChanges.dyn_notch_min_hz = dynNotchMinHz;
+    pushRec('dyn_notch_min_hz', current.dynNotch?.minHz ?? null, dynNotchMinHz, 'Set dynamic notch min frequency to capture dominant peaks.');
   }
   if (dynNotchMaxHz !== (current.dynNotch?.maxHz ?? 600)) {
     cliChanges.dyn_notch_max_hz = dynNotchMaxHz;
+    pushRec('dyn_notch_max_hz', current.dynNotch?.maxHz ?? null, dynNotchMaxHz, 'Set dynamic notch max frequency to cover peak band.');
   }
 
   return {
@@ -139,6 +155,7 @@ export function analyzeFilters(blackboxData, cliParams) {
     dynNotchMaxHz,
     staticNotches,
     cliChanges,
+    recommendations,
     sampleRate
   };
 }

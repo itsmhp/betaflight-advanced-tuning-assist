@@ -130,6 +130,35 @@ const t = {
     hideDetail: 'Hide Details',
     perAxis: 'Per-Axis',
     score: 'Score',
+
+    // V4 Features — Noise Heatmap
+    noise_heatmap: 'Noise Heatmap',
+    generate_heatmap: 'Generate Noise Heatmap',
+    heatmap_generating: 'Generating...',
+    clear_heatmap: 'Clear heatmap',
+    heatmap_throttle_vs_freq: 'Throttle % vs Frequency',
+    heatmap_noise_score: 'Noise Score',
+    heatmap_worst_throttle: 'Worst Throttle',
+    heatmap_peak_noise: 'Peak Noise',
+    heatmap_description: 'Visualize noise distribution across throttle and frequency ranges.',
+    heatmap_large_log_note: 'Computation may take a few seconds for large logs.',
+
+    // V4 Features — AI Insight
+    get_ai_insight: 'Get AI Insight',
+    ai_insight_label: 'AI Analysis',
+    ai_disclaimer: 'AI-generated interpretation — verify before applying',
+    ai_cached: 'cached',
+    ai_unavailable: 'AI unavailable, showing basic recommendations',
+    ai_api_key_placeholder: 'Anthropic API key (sk-ant-...)',
+    ai_save_key: 'Save',
+
+    // V4 Features — Log Comparison
+    before_label: 'Before',
+    after_label: 'After',
+    run_comparison: 'Run Comparison',
+    export_comparison: 'Export Comparison Summary',
+    improved: 'Improved',
+    regressed: 'Regressed',
   },
 
   id: {
@@ -256,6 +285,35 @@ const t = {
     hideDetail: 'Sembunyikan Detail',
     perAxis: 'Per Sumbu',
     score: 'Skor',
+
+    // V4 Features — Noise Heatmap
+    noise_heatmap: 'Peta Kebisingan',
+    generate_heatmap: 'Buat Peta Kebisingan',
+    heatmap_generating: 'Membuat...',
+    clear_heatmap: 'Hapus peta',
+    heatmap_throttle_vs_freq: 'Throttle % vs Frekuensi',
+    heatmap_noise_score: 'Skor Kebisingan',
+    heatmap_worst_throttle: 'Throttle Terburuk',
+    heatmap_peak_noise: 'Puncak Kebisingan',
+    heatmap_description: 'Visualisasikan distribusi kebisingan di seluruh throttle dan rentang frekuensi.',
+    heatmap_large_log_note: 'Komputasi mungkin membutuhkan beberapa detik untuk log besar.',
+
+    // V4 Features — AI Insight
+    get_ai_insight: 'Dapatkan Wawasan AI',
+    ai_insight_label: 'Analisis AI',
+    ai_disclaimer: 'Interpretasi dari AI — verifikasi sebelum diterapkan',
+    ai_cached: 'tersimpan',
+    ai_unavailable: 'AI tidak tersedia, menampilkan rekomendasi dasar',
+    ai_api_key_placeholder: 'Kunci API Anthropic (sk-ant-...)',
+    ai_save_key: 'Simpan',
+
+    // V4 Features — Log Comparison
+    before_label: 'Sebelum',
+    after_label: 'Sesudah',
+    run_comparison: 'Jalankan Perbandingan',
+    export_comparison: 'Ekspor Ringkasan Perbandingan',
+    improved: 'Meningkat',
+    regressed: 'Memburuk',
   },
 
   es: {
@@ -382,6 +440,35 @@ const t = {
     hideDetail: 'Ocultar Detalles',
     perAxis: 'Por Eje',
     score: 'Puntuación',
+
+    // V4 Features — Noise Heatmap
+    noise_heatmap: 'Mapa de Calor de Ruido',
+    generate_heatmap: 'Generar Mapa de Calor',
+    heatmap_generating: 'Generando...',
+    clear_heatmap: 'Limpiar mapa',
+    heatmap_throttle_vs_freq: 'Acelerador % vs Frecuencia',
+    heatmap_noise_score: 'Puntuación de Ruido',
+    heatmap_worst_throttle: 'Peor Acelerador',
+    heatmap_peak_noise: 'Ruido Pico',
+    heatmap_description: 'Visualizar la distribución del ruido en rangos de acelerador y frecuencia.',
+    heatmap_large_log_note: 'El cálculo puede tardar unos segundos para logs grandes.',
+
+    // V4 Features — AI Insight
+    get_ai_insight: 'Obtener Análisis AI',
+    ai_insight_label: 'Análisis AI',
+    ai_disclaimer: 'Interpretación generada por IA — verificar antes de aplicar',
+    ai_cached: 'caché',
+    ai_unavailable: 'IA no disponible, mostrando recomendaciones básicas',
+    ai_api_key_placeholder: 'Clave API de Anthropic (sk-ant-...)',
+    ai_save_key: 'Guardar',
+
+    // V4 Features — Log Comparison
+    before_label: 'Antes',
+    after_label: 'Después',
+    run_comparison: 'Ejecutar Comparación',
+    export_comparison: 'Exportar Resumen de Comparación',
+    improved: 'Mejorado',
+    regressed: 'Empeorado',
   },
 
   de: {
@@ -508,6 +595,35 @@ const t = {
     hideDetail: 'Details Ausblenden',
     perAxis: 'Pro Achse',
     score: 'Bewertung',
+
+    // V4 Features — Noise Heatmap
+    noise_heatmap: 'Rausch-Wärmebild',
+    generate_heatmap: 'Wärmebild generieren',
+    heatmap_generating: 'Generiere...',
+    clear_heatmap: 'Wärmebild löschen',
+    heatmap_throttle_vs_freq: 'Throttle % vs Frequenz',
+    heatmap_noise_score: 'Rausch-Score',
+    heatmap_worst_throttle: 'Schlechtster Throttle-Bereich',
+    heatmap_peak_noise: 'Spitzenrauschen',
+    heatmap_description: 'Rauschverteilung über Throttle- und Frequenzbereiche visualisieren.',
+    heatmap_large_log_note: 'Berechnung kann bei großen Logs einige Sekunden dauern.',
+
+    // V4 Features — AI Insight
+    get_ai_insight: 'KI-Analyse abrufen',
+    ai_insight_label: 'KI-Analyse',
+    ai_disclaimer: 'KI-generierte Interpretation — vor Anwendung prüfen',
+    ai_cached: 'gecacht',
+    ai_unavailable: 'KI nicht verfügbar, zeige Basisempfehlungen',
+    ai_api_key_placeholder: 'Anthropic API-Schlüssel (sk-ant-...)',
+    ai_save_key: 'Speichern',
+
+    // V4 Features — Log Comparison
+    before_label: 'Vorher',
+    after_label: 'Nachher',
+    run_comparison: 'Vergleich starten',
+    export_comparison: 'Vergleichszusammenfassung exportieren',
+    improved: 'Verbessert',
+    regressed: 'Verschlechtert',
   },
 };
 

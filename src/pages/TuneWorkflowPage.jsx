@@ -12,6 +12,8 @@ import { useLang } from '../i18n/LangContext';
 import { runAllAnalyzers, aggregateResults, renderCLI } from '../lib/analyzeAll';
 import { generateAIInsight } from '../lib/aiInterpreter';
 import FileUpload from '../components/shared/FileUpload';
+import { generateNoiseHeatmap } from '../lib/analyzers/noiseProfile';
+import NoiseHeatmap from '../components/NoiseHeatmap';
 import {
   createInitialPipelineState,
   pipelineReducer,
@@ -396,6 +398,9 @@ function StageCard({
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState('');
   const [aiText, setAiText] = useState('');
+  const [heatmapData, setHeatmapData] = useState(null);
+  const [heatmapLoading, setHeatmapLoading] = useState(false);
+  const [heatmapError, setHeatmapError] = useState('');
   const [aiApiKey, setAiApiKey] = useState(() => {
     try {
       return localStorage.getItem('btfl_anthropic_api_key') || '';
@@ -486,6 +491,30 @@ function StageCard({
       setAiError(err?.message || 'Failed to generate AI insight.');
     } finally {
       setAiLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (stage.id === 'noise') {
+      setHeatmapData(null);
+      setHeatmapError('');
+    }
+  }, [bbParsed, stage.id]);
+
+  const handleGenerateHeatmap = async () => {
+    if (!bbParsed || heatmapLoading) return;
+    setHeatmapLoading(true);
+    setHeatmapError('');
+    try {
+      const result = generateNoiseHeatmap(bbParsed);
+      if (!result) {
+        setHeatmapError('Heatmap requires more samples. Try a longer log.');
+      }
+      setHeatmapData(result);
+    } catch (err) {
+      setHeatmapError(err?.message || 'Failed to generate heatmap.');
+    } finally {
+      setHeatmapLoading(false);
     }
   };
 
@@ -723,6 +752,23 @@ function StageCard({
             <p className="text-xs text-gray-500 italic flex items-center gap-1.5 py-1">
               <Info size={12} /> Run &quot;Analyze All&quot; above to see results for this stage.
             </p>
+          )}
+
+          {/* Noise Heatmap */}
+          {stage.id === 'noise' && dataReady && (
+            <div className="space-y-2 border-t border-gray-700/30 pt-3">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleGenerateHeatmap}
+                  disabled={heatmapLoading}
+                  className="text-xs bg-blue-700 hover:bg-blue-600 disabled:opacity-40 text-white px-3 py-1.5 rounded-lg inline-flex items-center gap-1.5"
+                >
+                  {heatmapLoading ? <><Loader2 size={12} className="animate-spin" /> Generating...</> : 'Generate Noise Heatmap'}
+                </button>
+                {heatmapError && <span className="text-xs text-red-300">{heatmapError}</span>}
+              </div>
+              {heatmapData && <NoiseHeatmap heatmapData={heatmapData} />}
+            </div>
           )}
 
           {/* AI Interpretation */}

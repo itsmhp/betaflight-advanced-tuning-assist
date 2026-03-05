@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
 import { useData } from '../context/DataContext';
 import { analyzeFilters } from '../lib/analyzers/filterAnalyzer';
+import { generateNoiseHeatmap } from '../lib/analyzers/noiseProfile';
+import NoiseHeatmap from '../components/NoiseHeatmap';
 import CLIOutput from '../components/shared/CLIOutput';
 import { ToolHeader, StatCard, NoDataMessage, HealthBadge } from '../components/shared/UIComponents';
 import { Filter } from 'lucide-react';
@@ -13,6 +15,12 @@ export default function FilterAnalyzerPage() {
     try { return analyzeFilters(bbParsed, tuningParams); }
     catch (e) { console.error('FilterAnalyzer error:', e); return null; }
   }, [bbParsed, tuningParams]);
+
+  const heatmap = useMemo(() => {
+    if (!bbParsed) return null;
+    try { return generateNoiseHeatmap(bbParsed); }
+    catch (e) { console.error('Noise heatmap error:', e); return null; }
+  }, [bbParsed]);
 
   if (!cliParsed || !bbParsed) return <NoDataMessage requiresCli requiresBb />;
   if (!result) return <div className="card text-gray-400">Analysis failed.</div>;
@@ -63,10 +71,23 @@ export default function FilterAnalyzerPage() {
           <ul className="space-y-1">
             {result.recommendations.map((rec, i) => (
               <li key={i} className="text-xs text-gray-400 flex items-start gap-2">
-                <span className="text-yellow-400 mt-0.5">•</span> {rec}
+                <span className="text-yellow-400 mt-0.5">•</span>
+                <span>
+                  {typeof rec === 'string' ? rec : rec.message}
+                  {typeof rec === 'object' && rec.currentValue !== null && rec.suggestedValue !== null && (
+                    <span className="text-gray-500"> (was {rec.currentValue} → {rec.suggestedValue})</span>
+                  )}
+                </span>
               </li>
             ))}
           </ul>
+        </div>
+      )}
+
+      {heatmap && (
+        <div className="card mb-6">
+          <h3 className="text-sm font-semibold text-gray-300 mb-3">Noise Heatmap (Throttle vs Frequency)</h3>
+          <NoiseHeatmap heatmapData={heatmap} />
         </div>
       )}
 

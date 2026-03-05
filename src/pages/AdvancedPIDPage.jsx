@@ -102,7 +102,13 @@ export default function AdvancedPIDPage() {
           <ul className="space-y-1">
             {result.recommendations.map((rec, i) => (
               <li key={i} className="text-xs text-gray-400 flex items-start gap-2">
-                <span className="text-violet-400 mt-0.5">&#9656;</span> {rec}
+                <span className="text-violet-400 mt-0.5">&#9656;</span>
+                <span>
+                  {typeof rec === 'string' ? rec : rec.message}
+                  {typeof rec === 'object' && rec.currentValue !== null && rec.suggestedValue !== null && (
+                    <span className="text-gray-500"> (was {rec.currentValue} → {rec.suggestedValue})</span>
+                  )}
+                </span>
               </li>
             ))}
           </ul>

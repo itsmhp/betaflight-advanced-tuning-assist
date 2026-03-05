@@ -108,25 +108,47 @@ export function analyzeAdvancedPidHealth(blackboxData, cliParams) {
   // Recommendations
   const recommendations = [];
 
+  const addRecommendation = ({ message, param, currentValue, suggestedValue, command, severity = 'warning' }) => {
+    recommendations.push({ message, param, currentValue, suggestedValue, command, severity });
+  };
+
   for (const axis of axes) {
     const r = axisResults[axis];
     if (r.pSaturation > 5) {
-      recommendations.push(`${axis}: P-term saturation at ${r.pSaturation}% — consider reducing ${axis}_p_gain by 10-15%.`);
+      addRecommendation({
+        message: `${axis}: P-term saturation at ${r.pSaturation}% — consider reducing P gain by 10-15%.`,
+        severity: 'warning',
+      });
     }
     if (r.oscillationRate > 400) {
-      recommendations.push(`${axis}: High oscillation rate (${r.oscillationRate}/s) — reduce P or increase D for damping.`);
+      addRecommendation({
+        message: `${axis}: High oscillation rate (${r.oscillationRate}/s) — reduce P or increase D for damping.`,
+        severity: 'warning',
+      });
     }
     if (r.responseCorrelation < 0.5) {
-      recommendations.push(`${axis}: Poor tracking response (${r.responseCorrelation}) — increase P gain or check mechanical issues.`);
+      addRecommendation({
+        message: `${axis}: Poor tracking response (${r.responseCorrelation}) — increase P gain or check mechanical issues.`,
+        severity: 'warning',
+      });
     }
     if (r.dNoise > 80) {
-      recommendations.push(`${axis}: High D-term noise (${r.dNoise}) — lower D or tighten D-term LPF.`);
+      addRecommendation({
+        message: `${axis}: High D-term noise (${r.dNoise}) — lower D or tighten D-term LPF.`,
+        severity: 'warning',
+      });
     }
     if (r.latencyMs > 3) {
-      recommendations.push(`${axis}: PID latency ~${r.latencyMs}ms — check loop rate, filter delays.`);
+      addRecommendation({
+        message: `${axis}: PID latency ~${r.latencyMs}ms — check loop rate, filter delays.`,
+        severity: 'info',
+      });
     }
     if (r.iRatio > 45) {
-      recommendations.push(`${axis}: I-term dominant (${r.iRatio}%) — possible slow response, consider increasing P.`);
+      addRecommendation({
+        message: `${axis}: I-term dominant (${r.iRatio}%) — possible slow response, consider increasing P.`,
+        severity: 'info',
+      });
     }
   }
 
@@ -136,11 +158,29 @@ export function analyzeAdvancedPidHealth(blackboxData, cliParams) {
     const r = axisResults[axis];
     if (r.oscillationRate > 400 && r.pRatio > 40) {
       const currentP = cliParams?.pid?.[axis]?.p ?? 50;
-      cliChanges[`p_${axis}`] = Math.round(currentP * 0.88);
+      const suggestedP = Math.round(currentP * 0.88);
+      cliChanges[`p_${axis}`] = suggestedP;
+      addRecommendation({
+        message: `${axis}: Reduce P gain to calm oscillations.`,
+        param: `p_${axis}`,
+        currentValue: currentP,
+        suggestedValue: suggestedP,
+        command: `set p_${axis} = ${suggestedP}`,
+        severity: 'warning',
+      });
     }
     if (r.dNoise > 80) {
       const currentD = cliParams?.pid?.[axis]?.d ?? 30;
-      cliChanges[`d_${axis}`] = Math.round(currentD * 0.85);
+      const suggestedD = Math.round(currentD * 0.85);
+      cliChanges[`d_${axis}`] = suggestedD;
+      addRecommendation({
+        message: `${axis}: Reduce D gain to cut D-term noise.`,
+        param: `d_${axis}`,
+        currentValue: currentD,
+        suggestedValue: suggestedD,
+        command: `set d_${axis} = ${suggestedD}`,
+        severity: 'warning',
+      });
     }
   }
 

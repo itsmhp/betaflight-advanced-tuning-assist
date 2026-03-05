@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { useLang } from '../i18n/LangContext';
 import FileUpload from '../components/shared/FileUpload';
 import { runAllAnalyzers, computeOverallScore, aggregateResults, renderCLI, TOOL_DEFS } from '../lib/analyzeAll';
+import { generateNoiseHeatmap } from '../lib/analyzers/noiseProfile';
+import NoiseHeatmap from '../components/NoiseHeatmap';
 import {
   HeartPulse, Cog, RotateCcw, Radio, Gauge, Wind, Flame,
   Activity, ArrowRight, Filter, Sliders, TrendingDown, BarChart3,
@@ -71,6 +73,8 @@ export default function Dashboard() {
   const [showRecs, setShowRecs]         = useState(true);
   const [showCLI, setShowCLI]           = useState(true);
   const [copied, setCopied]             = useState(false);
+  const [heatmapData, setHeatmapData]   = useState(null);
+  const [heatmapLoading, setHeatmapLoading] = useState(false);
   const cliRef = useRef(null);
 
   const hasAnyData = !!(cliParsed || bbParsed);
@@ -104,6 +108,22 @@ export default function Dashboard() {
       setTimeout(() => setCopied(false), 2000);
     });
   }, [cliText]);
+
+  const handleGenerateHeatmap = useCallback(async () => {
+    if (!bbParsed || heatmapLoading) return;
+    setHeatmapLoading(true);
+    setHeatmapData(null);
+    try {
+      // Run in next tick to allow UI to update
+      await new Promise(r => setTimeout(r, 30));
+      const data = generateNoiseHeatmap(bbParsed);
+      setHeatmapData(data);
+    } catch (e) {
+      console.error('Heatmap error:', e);
+    } finally {
+      setHeatmapLoading(false);
+    }
+  }, [bbParsed, heatmapLoading]);
 
   const progressPct = progress.total>0 ? Math.round((progress.step/progress.total)*100) : 0;
 
@@ -350,6 +370,45 @@ export default function Dashboard() {
                   </pre>
                 </>
               )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Noise Heatmap ─────────────────────────────────────── */}
+      {bbParsed && (
+        <div className="card mb-6 border border-indigo-900/40">
+          <div className="flex items-center gap-2 mb-3">
+            <Radio size={14} className="text-indigo-400"/>
+            <span className="text-sm font-semibold text-gray-200 flex-1">Noise Heatmap</span>
+            <span className="text-[10px] text-gray-500">Throttle % vs Frequency</span>
+          </div>
+          {!heatmapData && (
+            <div className="flex flex-col items-center justify-center gap-3 py-8">
+              <div className="text-xs text-gray-500 text-center">
+                Visualize noise distribution across throttle and frequency ranges.<br/>
+                <span className="text-gray-600">Computation may take a few seconds for large logs.</span>
+              </div>
+              <button
+                onClick={handleGenerateHeatmap}
+                disabled={heatmapLoading}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold bg-indigo-800/40 text-indigo-300 border border-indigo-700/40 hover:bg-indigo-700/40 transition-colors disabled:opacity-50 disabled:cursor-wait"
+              >
+                {heatmapLoading
+                  ? <><Loader2 size={12} className="animate-spin"/>Generating...</>
+                  : <><Activity size={12}/>Generate Noise Heatmap</>}
+              </button>
+            </div>
+          )}
+          {heatmapData && (
+            <div>
+              <NoiseHeatmap heatmapData={heatmapData} width={580} height={280} />
+              <button
+                onClick={() => setHeatmapData(null)}
+                className="mt-2 text-[10px] text-gray-600 hover:text-gray-400 transition-colors"
+              >
+                Clear heatmap
+              </button>
             </div>
           )}
         </div>

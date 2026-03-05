@@ -96,6 +96,29 @@ export function analyzeAntiGravity(blackboxData, cliParams) {
     cliChanges.anti_gravity_gain = suggestedGain;
   }
 
+  // Structured recommendations with before/after values
+  const recommendations = [];
+  if (suggestedGain !== currentGain) {
+    const dir = suggestedGain > currentGain ? 'Increase' : 'Reduce';
+    recommendations.push({
+      message: `${dir} anti_gravity_gain: ${criticalCount} critical / ${warningCount} warning punch events detected. Drift avg = ${Math.round(avgDrift * 10) / 10} °/s.`,
+      param: 'anti_gravity_gain',
+      currentValue: currentGain,
+      suggestedValue: suggestedGain,
+      command: `set anti_gravity_gain = ${suggestedGain}`,
+      severity: criticalCount > 0 ? 'critical' : 'warning',
+    });
+  } else if (avgDrift < 15) {
+    recommendations.push({
+      message: `Anti-Gravity gain is well-configured. Avg drift ${Math.round(avgDrift * 10) / 10} °/s — no change needed.`,
+      param: 'anti_gravity_gain',
+      currentValue: currentGain,
+      suggestedValue: null,
+      command: null,
+      severity: 'info',
+    });
+  }
+
   return {
     events,
     status,
@@ -107,6 +130,7 @@ export function analyzeAntiGravity(blackboxData, cliParams) {
     currentGain,
     suggestedGain,
     cliChanges,
+    recommendations,
     chartData: {
       throttle: throttle.filter((_, i) => i % 10 === 0),
       gyroRoll: gyroRoll.filter((_, i) => i % 10 === 0),

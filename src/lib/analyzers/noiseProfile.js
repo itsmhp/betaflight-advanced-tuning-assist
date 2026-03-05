@@ -1,5 +1,5 @@
 // ─── 14. Noise Profile Tool ───
-import { magnitudeSpectrum, hanning, hamming, toDb, mean, rms, stddev, clamp, pearsonCorrelation } from '../utils.js';
+import { magnitudeSpectrum, hanning, hamming, toDb, mean, rms, stddev, clamp, pearsonCorrelation, nextPow2 } from '../utils.js';
 
 export function analyzeNoiseProfile(blackboxData) {
   const data = blackboxData.data;
@@ -179,3 +179,101 @@ export function analyzeNoiseProfile(blackboxData) {
     sampleRate
   };
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Noise Heatmap (Throttle vs Frequency)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const normalizeThrottle = (val, min, max) => {
+  if (max <= min) return 0;
+  return clamp((val - min) / (max - min), 0, 1);
+};
+
+const findWorstThrottleRange = (grid) => {
+  const rowAverages = grid.map(row => row.reduce((a, b) => a + b, 0) / row.length);
+  const worstIdx = rowAverages.indexOf(Math.max(...rowAverages));
+  return { bucket: worstIdx, percentLow: worstIdx * 5, percentHigh: (worstIdx + 1) * 5 };
+};
+
+const findWorstFreqRange = (grid) => {
+  const colTotals = Array(grid[0].length).fill(0);
+  grid.forEach(row => row.forEach((val, j) => { colTotals[j] += val; }));
+  const worstIdx = colTotals.indexOf(Math.max(...colTotals));
+  return { bucket: worstIdx, hzLow: worstIdx * 10, hzHigh: (worstIdx + 1) * 10 };
+};
+
+const calculateNoiseScore = (grid) => {
+  const total = grid.reduce((sum, row) => sum + row.reduce((a, b) => a + b, 0), 0);
+  const cells = grid.length * grid[0].length;
+  const avg = total / Math.max(1, cells);
+  return Math.max(0, 100 - Math.round(avg / 2.55));
+};
+
+export const generateNoiseHeatmap = (blackboxData) => {
+  const data = blackboxData?.data || [];
+  if (data.length < 256) return null;
+
+  const sampleRate = blackboxData.sampleRate || 2000;
+  const gyro = data.map(r => r['roll-gyro'] ?? r['gyroADC-roll'] ?? 0);
+  const throttle = data.map(r => r.throttle ?? r['rcCommand-3'] ?? 0);
+
+  const minThrottle = Math.min(...throttle);
+  const maxThrottle = Math.max(...throttle);
+
+  const THROTTLE_BUCKETS = 20;
+  const FREQ_BUCKETS = 50;
+  const FREQ_MAX = 500;
+
+  const accumulator = Array.from({ length: THROTTLE_BUCKETS }, () =>
+    Array.from({ length: FREQ_BUCKETS }, () => ({ sum: 0, count: 0 }))
+  );
+
+  const FFT_WINDOW = Math.min(256, nextPow2(gyro.length));
+  const STEP = Math.floor(FFT_WINDOW / 2);
+  const totalFrames = gyro.length;
+
+  for (let i = 0; i + FFT_WINDOW < totalFrames; i += STEP) {
+    const throttleSlice = throttle.slice(i, i + FFT_WINDOW);
+    const avgThrottle = throttleSlice.reduce((a, b) => a + b, 0) / FFT_WINDOW;
+    const throttleNorm = normalizeThrottle(avgThrottle, minThrottle, maxThrottle);
+    const throttleBucket = Math.min(THROTTLE_BUCKETS - 1, Math.floor(throttleNorm * THROTTLE_BUCKETS));
+
+    const gyroSlice = gyro.slice(i, i + FFT_WINDOW);
+    const mag = magnitudeSpectrum(gyroSlice, hanning);
+    const freqRes = sampleRate / (mag.length * 2);
+
+    for (let bin = 0; bin < mag.length; bin++) {
+      const freq = bin * freqRes;
+      if (freq > FREQ_MAX) break;
+      const freqBucket = Math.min(FREQ_BUCKETS - 1, Math.floor(freq / 10));
+      const magnitude = mag[bin];
+      accumulator[throttleBucket][freqBucket].sum += magnitude;
+      accumulator[throttleBucket][freqBucket].count += 1;
+    }
+  }
+
+  let maxVal = 0;
+  const rawGrid = accumulator.map(row =>
+    row.map(cell => {
+      const val = cell.count > 0 ? cell.sum / cell.count : 0;
+      maxVal = Math.max(maxVal, val);
+      return val;
+    })
+  );
+
+  const normalizedGrid = rawGrid.map(row =>
+    row.map(val => maxVal > 0 ? Math.round((val / maxVal) * 255) : 0)
+  );
+
+  return {
+    grid: normalizedGrid,
+    throttleBuckets: THROTTLE_BUCKETS,
+    freqBuckets: FREQ_BUCKETS,
+    freqMax: FREQ_MAX,
+    rpmHarmonics: [],
+    maxRawValue: maxVal,
+    worstThrottleRange: findWorstThrottleRange(normalizedGrid),
+    worstFreqRange: findWorstFreqRange(normalizedGrid),
+    overallNoiseScore: calculateNoiseScore(normalizedGrid),
+  };
+};

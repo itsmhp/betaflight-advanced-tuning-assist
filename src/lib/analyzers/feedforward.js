@@ -193,5 +193,42 @@ export function analyzeFeedforward(blackboxData, cliParams) {
     }
   }
 
-  return { axes: results, axisImbalance, cliChanges };
+  // Structured recommendations with before/after values
+  const recommendations = [];
+  for (const axis of axes) {
+    const r = results[axis];
+    if (!r) continue;
+    if (r.suggestedFF !== r.currentFF) {
+      const dir = r.suggestedFF > r.currentFF ? 'Increase' : 'Reduce';
+      recommendations.push({
+        message: r.recommendation,
+        param: `f_${axis}`,
+        currentValue: r.currentFF,
+        suggestedValue: r.suggestedFF,
+        command: `set f_${axis} = ${r.suggestedFF}`,
+        severity: r.primaryDiagnosis === 'FF_TOO_HIGH' ? 'warning' : 'info',
+      });
+    } else if (r.primaryDiagnosis === 'FF_OK') {
+      recommendations.push({
+        message: r.recommendation,
+        param: `f_${axis}`,
+        currentValue: r.currentFF,
+        suggestedValue: null,
+        command: null,
+        severity: 'info',
+      });
+    }
+  }
+  if (axisImbalance) {
+    recommendations.push({
+      message: axisImbalance,
+      param: null,
+      currentValue: null,
+      suggestedValue: null,
+      command: null,
+      severity: 'warning',
+    });
+  }
+
+  return { axes: results, axisImbalance, cliChanges, recommendations };
 }

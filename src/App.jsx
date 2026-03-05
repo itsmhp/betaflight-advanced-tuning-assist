@@ -21,6 +21,7 @@ import PresetsPage from './pages/PresetsPage';
 import DroneProfilePage from './pages/DroneProfilePage';
 import SerialCLIPage from './pages/SerialCLIPage';
 import TuneWorkflowPage from './pages/TuneWorkflowPage';
+import LogComparisonPage from './pages/LogComparisonPage';
 
 function App() {
   return (
@@ -49,6 +50,7 @@ function App() {
             <Route path="/my-drone" element={<DroneProfilePage />} />
             <Route path="/serial" element={<SerialCLIPage />} />
             <Route path="/tune" element={<TuneWorkflowPage />} />
+            <Route path="/compare-logs" element={<LogComparisonPage />} />
           </Routes>
         </ErrorBoundary>
       </main>

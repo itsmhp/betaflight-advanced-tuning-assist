@@ -11,6 +11,10 @@ export function DataProvider({ children }) {
   const [tuningParams, setTuningParams] = useState(null);
   const [bbRaw, setBbRaw] = useState('');
   const [bbParsed, setBbParsed] = useState(null);
+  const [comparisonBlackboxRaw, setComparisonBlackboxRaw] = useState('');
+  const [comparisonBlackboxData, setComparisonBlackboxData] = useState(null);
+  const [comparisonLabel, setComparisonLabel] = useState('After');
+  const [baselineLabel, setBaselineLabel] = useState('Before');
   const [capabilities, setCapabilities] = useState({});
   const [analysisResults, setAnalysisResults] = useState({});
   const [loading, setLoading] = useState(false);
@@ -71,6 +75,45 @@ export function DataProvider({ children }) {
     }
   }, []);
 
+  const loadComparisonBlackbox = useCallback((textOrBuffer, fileName) => {
+    try {
+      setLoading(true);
+      let parsed;
+
+      if (textOrBuffer instanceof ArrayBuffer) {
+        if (isBBLFile(textOrBuffer)) {
+          parsed = decodeBBL(textOrBuffer);
+        } else {
+          const text = new TextDecoder().decode(textOrBuffer);
+          parsed = parseBlackboxCSV(text);
+        }
+      } else if (typeof textOrBuffer === 'string') {
+        parsed = parseBlackboxCSV(textOrBuffer);
+      }
+
+      if (!parsed) throw new Error('Could not parse comparison blackbox data');
+
+      const rawLabel = typeof textOrBuffer === 'string'
+        ? textOrBuffer
+        : `[BBL binary: ${parsed.rowCount} frames${fileName ? ` - ${fileName}` : ''}]`;
+      setComparisonBlackboxRaw(rawLabel);
+      setComparisonBlackboxData(parsed);
+      setErrors(prev => prev.filter(e => e.source !== 'bb-compare'));
+      return parsed;
+    } catch (err) {
+      setErrors(prev => [...prev.filter(e => e.source !== 'bb-compare'), { source: 'bb-compare', message: err.message }]);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const clearComparisonBlackbox = useCallback(() => {
+    setComparisonBlackboxRaw('');
+    setComparisonBlackboxData(null);
+    setErrors(prev => prev.filter(e => e.source !== 'bb-compare'));
+  }, []);
+
   const setResult = useCallback((toolKey, result) => {
     setAnalysisResults(prev => ({ ...prev, [toolKey]: result }));
   }, []);
@@ -78,6 +121,8 @@ export function DataProvider({ children }) {
   const clearAll = useCallback(() => {
     setCliRaw(''); setCliParsed(null); setTuningParams(null);
     setBbRaw(''); setBbParsed(null); setCapabilities({});
+    setComparisonBlackboxRaw(''); setComparisonBlackboxData(null);
+    setComparisonLabel('After'); setBaselineLabel('Before');
     setAnalysisResults({}); setErrors([]);
   }, []);
 
@@ -85,8 +130,20 @@ export function DataProvider({ children }) {
     <DataContext.Provider value={{
       cliRaw, cliParsed, tuningParams,
       bbRaw, bbParsed, capabilities,
+      comparisonBlackboxRaw,
+      comparisonBlackboxData,
+      comparisonLabel,
+      baselineLabel,
       analysisResults, loading, errors,
-      loadCLI, loadBlackbox, setResult, clearAll, setLoading
+      loadCLI,
+      loadBlackbox,
+      loadComparisonBlackbox,
+      clearComparisonBlackbox,
+      setComparisonLabel,
+      setBaselineLabel,
+      setResult,
+      clearAll,
+      setLoading
     }}>
       {children}
     </DataContext.Provider>

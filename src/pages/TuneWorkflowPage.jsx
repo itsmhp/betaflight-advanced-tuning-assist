@@ -4,11 +4,14 @@ import {
   Waypoints, CheckCircle2, AlertCircle, AlertTriangle,
   ChevronRight, Loader2, Info,
   Lock, Copy, Check, Play, RotateCw, Cpu, X, SkipForward,
-  ClipboardList, Rocket, FileDown, RotateCcw
+  ClipboardList, Rocket, FileDown, RotateCcw, Sparkles
 } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { useDroneProfile } from '../context/DroneProfileContext';
+import { useLang } from '../i18n/LangContext';
 import { runAllAnalyzers, aggregateResults, renderCLI } from '../lib/analyzeAll';
+import { generateAIInsight } from '../lib/aiInterpreter';
+import FileUpload from '../components/shared/FileUpload';
 import {
   createInitialPipelineState,
   pipelineReducer,
@@ -236,6 +239,7 @@ function ToolResultBadge({ toolKey, analysisResults }) {
 // Verification Stage Content
 // ─────────────────────────────────────────────────────────────────────────────
 function VerificationContent({ pipeline, analysisResults }) {
+  const navigate = useNavigate();
   const { copied, copy } = useCopyClipboard();
   const [checks, setChecks] = useState({
     hover: false,
@@ -357,6 +361,15 @@ function VerificationContent({ pipeline, analysisResults }) {
           </p>
         )}
       </div>
+
+      <div className="flex justify-end">
+        <button
+          onClick={() => navigate('/compare-logs')}
+          className="text-xs bg-blue-700 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg"
+        >
+          Upload post-tune log & compare
+        </button>
+      </div>
     </div>
   );
 }
@@ -375,8 +388,21 @@ function StageCard({
   onSkipRequest,
 }) {
   const navigate = useNavigate();
+  const { lang } = useLang();
+  const { profile } = useDroneProfile();
   const [expanded, setExpanded] = useState(false);
   const { copied, copy } = useCopyClipboard();
+  const [aiExpanded, setAiExpanded] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState('');
+  const [aiText, setAiText] = useState('');
+  const [aiApiKey, setAiApiKey] = useState(() => {
+    try {
+      return localStorage.getItem('btfl_anthropic_api_key') || '';
+    } catch {
+      return '';
+    }
+  });
 
   const status = stage.status;
   const isLocked = status === STAGE_STATUS.LOCKED;
@@ -399,6 +425,15 @@ function StageCard({
     [stage, analysisResults]
   );
 
+  const stageAnalysisData = useMemo(() => {
+    if (!analysisResults) return null;
+    const picked = {};
+    for (const analyzerKey of stage.analyzerKeys) {
+      if (analysisResults[analyzerKey]) picked[analyzerKey] = analysisResults[analyzerKey];
+    }
+    return Object.keys(picked).length ? picked : null;
+  }, [analysisResults, stage.analyzerKeys]);
+
   const color = LEVEL_COLORS[healthLevel] || LEVEL_COLORS.unknown;
   const borderColor = STAGE_BORDER_COLORS[stageIndex] || 'border-gray-700/50';
 
@@ -412,6 +447,45 @@ function StageCard({
       dispatch({ type: 'UNMARK_RECOMMENDATION', payload: { stageIndex, command: rec.cliCommand || rec.message } });
     } else {
       dispatch({ type: 'MARK_RECOMMENDATION_APPLIED', payload: { stageIndex, command: rec.cliCommand || rec.message } });
+    }
+  };
+
+  const handleSaveApiKey = () => {
+    try {
+      if (aiApiKey?.trim()) {
+        localStorage.setItem('btfl_anthropic_api_key', aiApiKey.trim());
+      } else {
+        localStorage.removeItem('btfl_anthropic_api_key');
+      }
+    } catch {
+      // ignore localStorage errors
+    }
+  };
+
+  const handleGetAIInsight = async () => {
+    setAiLoading(true);
+    setAiError('');
+    try {
+      const result = await generateAIInsight({
+        stageId: stage.id,
+        analysisData: stageAnalysisData,
+        droneProfile: profile,
+        cliData: cliParsed,
+        lang,
+        apiKey: aiApiKey,
+      });
+
+      if (!result.ok) {
+        setAiError(result.error || 'Failed to generate AI insight.');
+        return;
+      }
+
+      setAiText(result.text || 'No AI output.');
+      setAiExpanded(true);
+    } catch (err) {
+      setAiError(err?.message || 'Failed to generate AI insight.');
+    } finally {
+      setAiLoading(false);
     }
   };
 
@@ -651,6 +725,41 @@ function StageCard({
             </p>
           )}
 
+          {/* AI Interpretation */}
+          {stage.id !== 'verification' && isActive && (
+            <div className="space-y-2 border-t border-gray-700/30 pt-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={handleGetAIInsight}
+                  disabled={aiLoading || !stageAnalysisData}
+                  className="text-xs bg-violet-700 hover:bg-violet-600 disabled:opacity-40 text-white px-3 py-1.5 rounded-lg inline-flex items-center gap-1.5"
+                >
+                  {aiLoading ? <><Loader2 size={12} className="animate-spin" /> Analyzing...</> : <><Sparkles size={12} /> Get AI Insight</>}
+                </button>
+                <input
+                  type="password"
+                  value={aiApiKey}
+                  onChange={(e) => setAiApiKey(e.target.value)}
+                  onBlur={handleSaveApiKey}
+                  placeholder="Anthropic API Key"
+                  className="text-xs bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-gray-300 min-w-[180px]"
+                />
+              </div>
+              {aiError && (
+                <div className="text-xs text-red-300 bg-red-900/20 border border-red-700/40 rounded-lg px-3 py-2">
+                  {aiError} (fallback: keep using rule-based recommendations above)
+                </div>
+              )}
+              {aiText && aiExpanded && (
+                <div className="bg-blue-900/20 border border-blue-700/40 rounded-lg px-3 py-2.5 space-y-1.5">
+                  <div className="text-xs font-semibold text-blue-300">AI Interpretation</div>
+                  <p className="text-xs text-blue-100 whitespace-pre-wrap leading-relaxed">{aiText}</p>
+                  <p className="text-[10px] text-blue-300/80">AI suggestions are advisory; verify with test flight.</p>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Action buttons */}
           {isActive && (
             <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-700/30">
@@ -730,6 +839,7 @@ export default function TuneWorkflowPage() {
   // New data detection
   const [showNewDataBanner, setShowNewDataBanner] = useState(false);
   const [dataFingerprint, setDataFingerprint] = useState(null);
+  const [showUploadPanel, setShowUploadPanel] = useState(true);
 
   // Track data changes for re-upload detection
   useEffect(() => {
@@ -826,6 +936,23 @@ export default function TuneWorkflowPage() {
 
       {/* ── Progress ── */}
       <PipelineProgressBar pipeline={pipeline} />
+
+      {/* ── Inline Upload Panel ── */}
+      <div className="bg-gray-800/40 border border-gray-700/40 rounded-xl p-4 space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h3 className="text-sm font-semibold text-gray-200">Flight Data Upload</h3>
+            <p className="text-xs text-gray-500">Upload / replace CLI and blackbox directly from this sequential tuning tab.</p>
+          </div>
+          <button
+            onClick={() => setShowUploadPanel(prev => !prev)}
+            className="text-xs bg-gray-700 hover:bg-gray-600 text-gray-200 px-3 py-1.5 rounded-lg"
+          >
+            {showUploadPanel ? 'Hide Upload' : 'Show Upload'}
+          </button>
+        </div>
+        {showUploadPanel && <FileUpload compact />}
+      </div>
 
       {/* ── Data Status Banners ── */}
       {!bbParsed && (

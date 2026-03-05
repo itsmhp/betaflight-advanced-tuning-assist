@@ -38,6 +38,7 @@ const t = {
     my_drone: 'My Drone',
     serial_cli: 'CLI Terminal',
     tune_quad: 'Tune Your Quad',
+    compare_logs: 'Compare Logs',
     adv_pid_health: 'PID Health',
 
     // Tool Descriptions
@@ -163,6 +164,7 @@ const t = {
     my_drone: 'Drone Saya',
     serial_cli: 'CLI Terminal',
     tune_quad: 'Setel Quad Kamu',
+    compare_logs: 'Bandingkan Log',
     adv_pid_health: 'PID Health',
 
     // Tool Descriptions
@@ -288,6 +290,7 @@ const t = {
     my_drone: 'Mi Dron',
     serial_cli: 'Terminal CLI',
     tune_quad: 'Afinar tu Quad',
+    compare_logs: 'Comparar Logs',
     adv_pid_health: 'PID Health',
 
     // Tool Descriptions
@@ -413,6 +416,7 @@ const t = {
     my_drone: 'Meine Drohne',
     serial_cli: 'CLI Terminal',
     tune_quad: 'Quad abstimmen',
+    compare_logs: 'Logs vergleichen',
     adv_pid_health: 'PID Health',
 
     // Tool Descriptions

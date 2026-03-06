@@ -250,6 +250,42 @@ const t = {
     cli_import_saved: 'CLI snapshot saved',
     cli_import_parsedPreview: 'Parsed Data Preview',
     cli_import_viewSnapshot: 'View saved CLI snapshot',
+
+    // V7 Features — Rate Comparison & Detail
+    rate_detail: 'Rate Details',
+    rate_compare: 'Compare Rates',
+    rate_compareTitle: 'Rate Comparison',
+    rate_addCompare: 'Add to Compare',
+    rate_removeCompare: 'Remove',
+    rate_compareMax: 'Max 3 rates for comparison',
+    rate_compareNow: 'Compare Now',
+    rate_clearCompare: 'Clear',
+    rate_highestValue: 'Highest',
+    rate_pilot: 'Pilot',
+    rate_website: 'Website',
+    rate_tags: 'Tags',
+    rate_notes: 'Notes',
+    rate_cliPreview: 'CLI Preview',
+    rate_myRates: 'My Rates',
+    rate_communityRates: 'Community Rates',
+    rate_searchPilot: 'Search by pilot name...',
+    rate_allTypes: 'All Types',
+    rate_allRateSystems: 'All Rate Systems',
+    rate_noResults: 'No rates found matching your filters',
+    rate_selected: 'selected for comparison',
+
+    // V7 Features — Whoop
+    quad_whoop: 'Whoop',
+    quad_freestyle: 'Freestyle',
+    quad_racing: 'Racing',
+    quad_cinematic: 'Cinematic',
+    quad_longrange: 'Long Range',
+
+    // V7 Features — Desktop App
+    desktop_title: 'Desktop App',
+    desktop_subtitle: 'Download the desktop version for offline use',
+    desktop_windows: 'Windows',
+    desktop_mac: 'macOS',
   },
 
   id: {
@@ -495,7 +531,41 @@ const t = {
     cli_import_saved: 'Snapshot CLI tersimpan',
     cli_import_parsedPreview: 'Preview Data Parsed',
     cli_import_viewSnapshot: 'Lihat snapshot CLI tersimpan',
-  },
+    // V7 — Rate Comparison & Detail
+    rate_detail: 'Detail Rate',
+    rate_compare: 'Bandingkan Rate',
+    rate_compareTitle: 'Perbandingan Rate',
+    rate_addCompare: 'Tambah ke Perbandingan',
+    rate_removeCompare: 'Hapus',
+    rate_compareMax: 'Maks 3 rate untuk perbandingan',
+    rate_compareNow: 'Bandingkan Sekarang',
+    rate_clearCompare: 'Bersihkan',
+    rate_highestValue: 'Tertinggi',
+    rate_pilot: 'Pilot',
+    rate_website: 'Website',
+    rate_tags: 'Tag',
+    rate_notes: 'Catatan',
+    rate_cliPreview: 'Pratinjau CLI',
+    rate_myRates: 'Rate Saya',
+    rate_communityRates: 'Rate Komunitas',
+    rate_searchPilot: 'Cari nama pilot...',
+    rate_allTypes: 'Semua Tipe',
+    rate_allRateSystems: 'Semua Sistem Rate',
+    rate_noResults: 'Tidak ada rate yang cocok dengan filter',
+    rate_selected: 'dipilih untuk perbandingan',
+
+    // V7 — Whoop
+    quad_whoop: 'Whoop',
+    quad_freestyle: 'Freestyle',
+    quad_racing: 'Racing',
+    quad_cinematic: 'Sinematik',
+    quad_longrange: 'Jarak Jauh',
+
+    // V7 — Desktop
+    desktop_title: 'Aplikasi Desktop',
+    desktop_subtitle: 'Unduh versi desktop untuk penggunaan offline',
+    desktop_windows: 'Windows',
+    desktop_mac: 'macOS',  },
 
   es: {
     // App
@@ -741,7 +811,41 @@ const t = {
     cli_import_saved: 'Snapshot CLI guardado',
     cli_import_parsedPreview: 'Vista Previa de Datos Parseados',
     cli_import_viewSnapshot: 'Ver snapshot CLI guardado',
-  },
+    // V7 — Rate Comparison & Detail
+    rate_detail: 'Detalles de Rates',
+    rate_compare: 'Comparar Rates',
+    rate_compareTitle: 'Comparación de Rates',
+    rate_addCompare: 'Agregar a Comparación',
+    rate_removeCompare: 'Eliminar',
+    rate_compareMax: 'Máx 3 rates para comparar',
+    rate_compareNow: 'Comparar Ahora',
+    rate_clearCompare: 'Limpiar',
+    rate_highestValue: 'Más alto',
+    rate_pilot: 'Piloto',
+    rate_website: 'Sitio web',
+    rate_tags: 'Etiquetas',
+    rate_notes: 'Notas',
+    rate_cliPreview: 'Vista previa CLI',
+    rate_myRates: 'Mis Rates',
+    rate_communityRates: 'Rates de la Comunidad',
+    rate_searchPilot: 'Buscar por nombre de piloto...',
+    rate_allTypes: 'Todos los Tipos',
+    rate_allRateSystems: 'Todos los Sistemas',
+    rate_noResults: 'No se encontraron rates con esos filtros',
+    rate_selected: 'seleccionados para comparar',
+
+    // V7 — Whoop
+    quad_whoop: 'Whoop',
+    quad_freestyle: 'Freestyle',
+    quad_racing: 'Carreras',
+    quad_cinematic: 'Cinemático',
+    quad_longrange: 'Largo Alcance',
+
+    // V7 — Desktop
+    desktop_title: 'App de Escritorio',
+    desktop_subtitle: 'Descarga la versión de escritorio para uso sin conexión',
+    desktop_windows: 'Windows',
+    desktop_mac: 'macOS',  },
 
   de: {
     // App
@@ -987,6 +1091,42 @@ const t = {
     cli_import_saved: 'CLI-Snapshot gespeichert',
     cli_import_parsedPreview: 'Vorschau geparster Daten',
     cli_import_viewSnapshot: 'Gespeicherten CLI-Snapshot anzeigen',
+
+    // V7 — Rate Comparison & Detail
+    rate_detail: 'Rate-Details',
+    rate_compare: 'Rates vergleichen',
+    rate_compareTitle: 'Rate-Vergleich',
+    rate_addCompare: 'Zum Vergleich hinzufügen',
+    rate_removeCompare: 'Entfernen',
+    rate_compareMax: 'Max. 3 Rates zum Vergleichen',
+    rate_compareNow: 'Jetzt vergleichen',
+    rate_clearCompare: 'Leeren',
+    rate_highestValue: 'Höchster',
+    rate_pilot: 'Pilot',
+    rate_website: 'Webseite',
+    rate_tags: 'Tags',
+    rate_notes: 'Notizen',
+    rate_cliPreview: 'CLI-Vorschau',
+    rate_myRates: 'Meine Rates',
+    rate_communityRates: 'Community Rates',
+    rate_searchPilot: 'Nach Pilotnamen suchen...',
+    rate_allTypes: 'Alle Typen',
+    rate_allRateSystems: 'Alle Rate-Systeme',
+    rate_noResults: 'Keine Rates mit diesen Filtern gefunden',
+    rate_selected: 'zum Vergleich ausgewählt',
+
+    // V7 — Whoop
+    quad_whoop: 'Whoop',
+    quad_freestyle: 'Freestyle',
+    quad_racing: 'Rennen',
+    quad_cinematic: 'Cinematisch',
+    quad_longrange: 'Langstrecke',
+
+    // V7 — Desktop
+    desktop_title: 'Desktop-App',
+    desktop_subtitle: 'Desktop-Version für Offline-Nutzung herunterladen',
+    desktop_windows: 'Windows',
+    desktop_mac: 'macOS',
   },
 };
 

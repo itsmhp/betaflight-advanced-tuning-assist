@@ -178,18 +178,22 @@ export function aggregateResults(summaryResults) {
     if (r.skipped || r.error || !r.result) continue;
     const res = r.result;
 
-    // Recommendations
+    // Recommendations — normalise to plain strings
+    // Some analyzers return string[], others return {message, param, ...}[]
+    const extractText = (item) =>
+      typeof item === 'string' ? item : (item?.message ?? item?.text ?? JSON.stringify(item));
+
     if (Array.isArray(res.recommendations)) {
-      for (const text of res.recommendations) {
-        allRecommendations.push({ tool: LABEL[key] ?? key, text, level: r.level ?? 'good' });
+      for (const raw of res.recommendations) {
+        allRecommendations.push({ tool: LABEL[key] ?? key, text: extractText(raw), level: r.level ?? 'good' });
       }
     }
     // Axis-level recommendations (e.g. advancedPidHealth.axes[].healthScore)
     if (res.axes) {
       for (const [, axRes] of Object.entries(res.axes)) {
         if (Array.isArray(axRes.recommendations)) {
-          for (const text of axRes.recommendations) {
-            allRecommendations.push({ tool: LABEL[key] ?? key, text, level: r.level ?? 'good' });
+          for (const raw of axRes.recommendations) {
+            allRecommendations.push({ tool: LABEL[key] ?? key, text: extractText(raw), level: r.level ?? 'good' });
           }
         }
       }

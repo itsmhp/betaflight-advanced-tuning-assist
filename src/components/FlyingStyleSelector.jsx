@@ -30,7 +30,7 @@ const STYLES = [
   {
     id: 'juicy',
     label: 'Juicy',
-    emoji: '🍊',
+    emoji: '🧃',
     icon: Zap,
     color: 'orange',
     desc: 'Aggressive freestyle feel. Bouncy, energetic, with good pop.',

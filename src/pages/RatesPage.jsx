@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import {
   Copy, Check, ChevronDown, ChevronUp, Plus, Trash2, Edit3, Save, X,
-  Search, Filter, Tag, User, Award, Terminal
+  Search, Filter, Tag, User, Award, Terminal, BarChart3, GitCompare
 } from 'lucide-react';
 import { COMMUNITY_RATES, QUAD_TYPES, RATE_TYPES, createEmptyRateProfile, loadCustomRates, saveCustomRates } from '../lib/communityRates';
 import { calculateRateCurve, getPeakRate, generateRateCLI } from '../lib/rateCalculator';
@@ -123,28 +123,224 @@ function CopyBtn({ text, label = 'Copy CLI' }) {
   );
 }
 
-// ─── Rate Value Display ─────────────────────────────────────────────────────
-function RateValueBadge({ axis, profile }) {
-  const peak = getPeakRate(profile, axis);
+// ─── Row-based Rate Values Table ────────────────────────────────────────────
+function RateValuesTable({ profile, compact = false }) {
+  const isActual = profile.rateType === 'actual';
+  const headers = isActual
+    ? ['Center Sens', 'Max Rate', 'Expo', 'Peak']
+    : ['RC Rate', 'Super Rate', 'Expo', 'Peak'];
+
   return (
-    <span className="text-[11px] text-gray-400">
-      {axis.charAt(0).toUpperCase()}: <span className="text-white font-semibold">{peak}°/s</span>
-    </span>
+    <table className="w-full text-xs border-collapse">
+      <thead>
+        <tr>
+          <th className="text-left px-2 py-1.5 text-gray-500 font-semibold text-[11px]">Axis</th>
+          {headers.map(h => (
+            <th key={h} className="text-right px-2 py-1.5 text-gray-500 font-semibold text-[11px]">{h}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {['roll', 'pitch', 'yaw'].map(axis => {
+          const p = profile[axis] || {};
+          const peak = getPeakRate(profile, axis);
+          const val1 = isActual ? (p.center_sensitivity ?? '-') : (p.rc_rate ?? '-');
+          const val2 = isActual ? (p.max_rate ?? '-') : (p.rate ?? '-');
+          const val3 = p.expo ?? 0;
+          return (
+            <tr key={axis} className="border-t border-white/5">
+              <td className="px-2 py-1.5 text-gray-300 font-medium capitalize">{axis}</td>
+              <td className="px-2 py-1.5 text-white font-mono text-right">{val1}</td>
+              <td className="px-2 py-1.5 text-white font-mono text-right">{val2}</td>
+              <td className="px-2 py-1.5 text-white font-mono text-right">{val3}</td>
+              <td className="px-2 py-1.5 text-cyan-300 font-mono font-semibold text-right">{peak}°/s</td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
+}
+
+// ─── Rate Detail Modal ──────────────────────────────────────────────────────
+function RateDetailModal({ rate, onClose, compareList, onToggleCompare }) {
+  const cli = useMemo(() => generateRateCLI(rate), [rate]);
+  const rateTypeLabel = RATE_TYPES.find(t => t.id === rate.rateType)?.label ?? rate.rateType;
+  const quadLabel = QUAD_TYPES.find(t => t.value === rate.quadType)?.label ?? rate.quadType;
+  const inCompare = compareList?.some(r => r.id === rate.id);
+
+  return (
+    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-gray-900 border border-gray-700 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+        onClick={e => e.stopPropagation()}>
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3 p-5 border-b border-gray-800">
+          <div>
+            <h2 className="text-lg font-bold text-white">{rate.name || 'Unnamed Rates'}</h2>
+            <p className="text-sm text-gray-400 mt-0.5">
+              {rate.pilotName || 'Unknown Pilot'}
+              {rate.quadName ? ` · ${rate.quadName}` : ''}
+            </p>
+            <div className="flex gap-2 mt-2 flex-wrap">
+              <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-violet-900/40 text-violet-300">{rateTypeLabel}</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-cyan-900/40 text-cyan-300">{quadLabel}</span>
+              {rate.source === 'community' && (
+                <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-amber-900/40 text-amber-300">🏆 Community</span>
+              )}
+            </div>
+          </div>
+          <button onClick={onClose} className="text-gray-500 hover:text-white p-1 shrink-0"><X size={18} /></button>
+        </div>
+
+        {/* Body */}
+        <div className="p-5 space-y-4">
+          {rate.notes && <p className="text-xs text-gray-400 italic">{rate.notes}</p>}
+          <RateCurveCanvas rateProfile={rate} height={180} />
+          <RateValuesTable profile={rate} />
+          <div className="flex gap-4 text-xs text-gray-400">
+            <span>Throttle Mid: <span className="text-white font-mono">{rate.thr_mid ?? 0.5}</span></span>
+            <span>Throttle Expo: <span className="text-white font-mono">{rate.thr_expo ?? 0}</span></span>
+          </div>
+          {rate.tags?.length > 0 && (
+            <div className="flex gap-1 flex-wrap">
+              {rate.tags.map(tag => (
+                <span key={tag} className="text-[10px] bg-gray-700/60 text-gray-400 px-1.5 py-0.5 rounded">{tag}</span>
+              ))}
+            </div>
+          )}
+          <details className="text-xs">
+            <summary className="cursor-pointer text-gray-500 hover:text-gray-300 flex items-center gap-1.5">
+              <Terminal size={11} /> CLI Commands
+            </summary>
+            <pre className="bg-gray-950 rounded-lg p-3 text-green-300 font-mono overflow-x-auto max-h-48 mt-2 select-all text-[11px]">{cli}</pre>
+          </details>
+        </div>
+
+        {/* Footer */}
+        <div className="flex flex-wrap gap-2 p-5 pt-3 border-t border-gray-800">
+          <CopyBtn text={cli} />
+          {onToggleCompare && (
+            <button
+              onClick={() => onToggleCompare(rate)}
+              className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-colors font-medium ${
+                inCompare ? 'bg-amber-700 text-amber-100' : 'bg-gray-700 hover:bg-gray-600 text-gray-200'
+              }`}>
+              <GitCompare size={12} />
+              {inCompare ? 'Remove from Compare' : 'Add to Compare'}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Rate Compare Modal ─────────────────────────────────────────────────────
+function RateCompareModal({ rates, onClose }) {
+  if (rates.length < 2) return null;
+
+  const getMax = (axis, field) => {
+    const vals = rates.map(r => {
+      const p = r[axis] || {};
+      if (field === 'peak') return getPeakRate(r, axis);
+      return p[field] ?? 0;
+    });
+    return Math.max(...vals);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-gray-900 border border-gray-700 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+        onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between p-5 border-b border-gray-800">
+          <div className="flex items-center gap-2">
+            <GitCompare size={18} className="text-cyan-400" />
+            <h2 className="text-lg font-bold text-white">Rate Comparison</h2>
+          </div>
+          <button onClick={onClose} className="text-gray-500 hover:text-white p-1"><X size={18} /></button>
+        </div>
+        <div className="p-5 space-y-6">
+          <div className={`grid gap-4 ${rates.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+            {rates.map(r => (
+              <div key={r.id} className="space-y-2">
+                <div className="text-center">
+                  <div className="text-sm font-bold text-white">{r.name}</div>
+                  <div className="text-[10px] text-gray-500">{r.pilotName}</div>
+                </div>
+                <RateCurveCanvas rateProfile={r} height={140} />
+              </div>
+            ))}
+          </div>
+          {['roll', 'pitch', 'yaw'].map(axis => {
+            const isActual = rates[0].rateType === 'actual';
+            const fields = isActual
+              ? [{ key: 'center_sensitivity', label: 'Center Sens' }, { key: 'max_rate', label: 'Max Rate' }, { key: 'expo', label: 'Expo' }]
+              : [{ key: 'rc_rate', label: 'RC Rate' }, { key: 'rate', label: 'Super Rate' }, { key: 'expo', label: 'Expo' }];
+            return (
+              <div key={axis} className="space-y-1">
+                <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">{axis}</h3>
+                <table className="w-full text-xs border-collapse">
+                  <thead>
+                    <tr>
+                      <th className="text-left px-2 py-1 text-gray-500 font-medium">Param</th>
+                      {rates.map(r => (
+                        <th key={r.id} className="text-right px-2 py-1 text-gray-400 font-medium truncate max-w-[120px]">{r.name}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {fields.map(f => {
+                      const maxVal = getMax(axis, f.key);
+                      return (
+                        <tr key={f.key} className="border-t border-white/5">
+                          <td className="px-2 py-1 text-gray-400">{f.label}</td>
+                          {rates.map(r => {
+                            const val = r[axis]?.[f.key] ?? 0;
+                            const isMax = val === maxVal && rates.length > 1;
+                            return (
+                              <td key={r.id} className={`px-2 py-1 text-right font-mono ${isMax ? 'text-green-400 font-bold' : 'text-white'}`}>
+                                {val}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    })}
+                    <tr className="border-t border-white/5">
+                      <td className="px-2 py-1 text-gray-400 font-semibold">Peak</td>
+                      {rates.map(r => {
+                        const peak = getPeakRate(r, axis);
+                        const maxPeak = getMax(axis, 'peak');
+                        const isMax = peak === maxPeak && rates.length > 1;
+                        return (
+                          <td key={r.id} className={`px-2 py-1 text-right font-mono font-semibold ${isMax ? 'text-green-400' : 'text-cyan-300'}`}>
+                            {peak}°/s
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
   );
 }
 
 // ─── Rate Card ──────────────────────────────────────────────────────────────
-function RateCard({ profile, onEdit, onDelete, isCommunity }) {
-  const [expanded, setExpanded] = useState(false);
-  const cli = useMemo(() => generateRateCLI(profile), [profile]);
+function RateCard({ profile, onEdit, onDelete, isCommunity, onClick, compareList, onToggleCompare }) {
   const rateTypeLabel = RATE_TYPES.find(t => t.id === profile.rateType)?.label ?? profile.rateType;
   const quadLabel = QUAD_TYPES.find(t => t.value === profile.quadType)?.label ?? profile.quadType;
+  const inCompare = compareList?.some(r => r.id === profile.id);
 
   return (
-    <div className={`bg-gray-800/50 border rounded-xl overflow-hidden transition-all ${
+    <div className={`bg-gray-800/50 border rounded-xl overflow-hidden transition-all hover:border-gray-500/60 ${
       isCommunity ? 'border-violet-700/30' : 'border-cyan-700/30'}`}>
-      {/* Header */}
-      <div className="p-4 cursor-pointer hover:bg-white/5 transition-colors" onClick={() => setExpanded(v => !v)}>
+      {/* Clickable header area */}
+      <div className="p-4 cursor-pointer hover:bg-white/5 transition-colors" onClick={() => onClick?.(profile)}>
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2.5 min-w-0">
             <span className="text-xl select-none">{isCommunity ? '🏆' : '✏️'}</span>
@@ -162,14 +358,9 @@ function RateCard({ profile, onEdit, onDelete, isCommunity }) {
               </p>
             </div>
           </div>
-          <span className="text-gray-500 mt-1 shrink-0">
-            {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-          </span>
         </div>
-        <div className="flex gap-3 mt-2">
-          <RateValueBadge axis="roll" profile={profile} />
-          <RateValueBadge axis="pitch" profile={profile} />
-          <RateValueBadge axis="yaw" profile={profile} />
+        <div className="mt-2">
+          <RateValuesTable profile={profile} compact />
         </div>
         {profile.tags?.length > 0 && (
           <div className="flex gap-1 mt-2 flex-wrap">
@@ -180,58 +371,28 @@ function RateCard({ profile, onEdit, onDelete, isCommunity }) {
         )}
       </div>
 
-      {/* Expanded */}
-      {expanded && (
-        <div className="border-t border-white/10 px-4 pb-4 pt-3 space-y-3">
-          {profile.notes && (
-            <p className="text-xs text-gray-400 italic">{profile.notes}</p>
-          )}
-
-          {/* Curve Preview */}
-          <RateCurveCanvas rateProfile={profile} height={140} />
-
-          {/* Rate values table */}
-          <div className="grid grid-cols-4 gap-px bg-gray-700/30 rounded-lg overflow-hidden text-xs">
-            <div className="bg-gray-800/70 px-2 py-1.5 text-gray-500 font-medium">Axis</div>
-            {(profile.rateType === 'actual' ? ['Center Sens', 'Max Rate', 'Expo'] : ['RC Rate', 'Super Rate', 'Expo']).map(h => (
-              <div key={h} className="bg-gray-800/70 px-2 py-1.5 text-gray-500 font-medium">{h}</div>
-            ))}
-            {['roll', 'pitch', 'yaw'].map(axis => {
-              const p = profile[axis] || {};
-              const isActual = profile.rateType === 'actual';
-              return [
-                <div key={`${axis}-l`} className="bg-gray-800/50 px-2 py-1.5 text-gray-300 font-medium capitalize">{axis}</div>,
-                <div key={`${axis}-1`} className="bg-gray-800/50 px-2 py-1.5 text-white font-mono">{isActual ? (p.center_sensitivity ?? '-') : (p.rc_rate ?? '-')}</div>,
-                <div key={`${axis}-2`} className="bg-gray-800/50 px-2 py-1.5 text-white font-mono">{isActual ? (p.max_rate ?? '-') : (p.rate ?? '-')}</div>,
-                <div key={`${axis}-3`} className="bg-gray-800/50 px-2 py-1.5 text-white font-mono">{p.expo ?? 0}</div>,
-              ];
-            })}
-          </div>
-
-          {/* Actions */}
-          <div className="flex flex-wrap gap-2">
-            <CopyBtn text={cli} />
-            {!isCommunity && onEdit && (
-              <button onClick={() => onEdit(profile)} className="flex items-center gap-1.5 text-xs bg-gray-700 hover:bg-gray-600 text-gray-200 px-3 py-1.5 rounded-lg transition-colors">
-                <Edit3 size={12} /> Edit
-              </button>
-            )}
-            {!isCommunity && onDelete && (
-              <button onClick={() => onDelete(profile.id)} className="flex items-center gap-1.5 text-xs bg-red-900/40 hover:bg-red-800/60 text-red-300 px-3 py-1.5 rounded-lg transition-colors">
-                <Trash2 size={12} /> Delete
-              </button>
-            )}
-          </div>
-
-          {/* CLI Preview */}
-          <details className="text-xs">
-            <summary className="cursor-pointer text-gray-500 hover:text-gray-300 flex items-center gap-1.5">
-              <Terminal size={11} /> CLI Preview
-            </summary>
-            <pre className="bg-gray-950 rounded-lg p-3 text-green-300 font-mono overflow-x-auto max-h-40 mt-2 select-all">{cli}</pre>
-          </details>
-        </div>
-      )}
+      {/* Quick action bar */}
+      <div className="flex items-center gap-1 px-4 pb-3">
+        <button
+          onClick={(e) => { e.stopPropagation(); onToggleCompare?.(profile); }}
+          className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded-md transition-colors ${
+            inCompare ? 'bg-amber-800/60 text-amber-300' : 'bg-gray-700/50 text-gray-500 hover:text-gray-300'
+          }`}>
+          <GitCompare size={10} /> {inCompare ? 'Comparing' : 'Compare'}
+        </button>
+        {!isCommunity && onEdit && (
+          <button onClick={(e) => { e.stopPropagation(); onEdit(profile); }}
+            className="flex items-center gap-1 text-[10px] bg-gray-700/50 text-gray-500 hover:text-gray-300 px-2 py-1 rounded-md transition-colors">
+            <Edit3 size={10} /> Edit
+          </button>
+        )}
+        {!isCommunity && onDelete && (
+          <button onClick={(e) => { e.stopPropagation(); onDelete(profile.id); }}
+            className="flex items-center gap-1 text-[10px] bg-gray-700/50 text-red-400/60 hover:text-red-300 px-2 py-1 rounded-md transition-colors">
+            <Trash2 size={10} /> Delete
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -357,28 +518,39 @@ function RateEditor({ initial, onSave, onCancel }) {
           </button>
         </div>
 
-        <div className="grid grid-cols-4 gap-2 text-xs">
-          <div className="text-gray-500 font-medium py-2"></div>
-          {['Roll', 'Pitch', 'Yaw'].map(a => (
-            <div key={a} className="text-gray-400 font-medium py-2 text-center">{a}</div>
-          ))}
-          {paramNames.map((label, pi) => (
-            <>
-              <div key={`l-${pi}`} className="text-gray-400 py-2 flex items-center">{label}</div>
-              {['roll', 'pitch', 'yaw'].map(axis => (
-                <input
-                  key={`${axis}-${pi}`}
-                  type="number"
-                  step={isActual && pi < 2 ? 10 : 0.01}
-                  min={0}
-                  value={profile[axis]?.[paramLabels[pi]] ?? ''}
-                  onChange={e => update(`${axis}.${paramLabels[pi]}`, parseFloat(e.target.value) || 0)}
-                  className="bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-sm text-white font-mono text-center focus:outline-none focus:border-violet-500 [appearance:textfield]"
-                />
+        <table className="w-full text-xs border-collapse">
+          <thead>
+            <tr>
+              <th className="text-left px-2 py-2 text-gray-500 font-medium">Axis</th>
+              {paramNames.map(n => (
+                <th key={n} className="text-center px-2 py-2 text-gray-400 font-medium">{n}</th>
               ))}
-            </>
-          ))}
-        </div>
+              <th className="text-right px-2 py-2 text-gray-500 font-medium">Peak</th>
+            </tr>
+          </thead>
+          <tbody>
+            {['roll', 'pitch', 'yaw'].map(axis => (
+              <tr key={axis} className="border-t border-white/5">
+                <td className="px-2 py-2 text-gray-300 font-medium capitalize">{axis}</td>
+                {paramLabels.map((param, pi) => (
+                  <td key={param} className="px-1 py-1">
+                    <input
+                      type="number"
+                      step={isActual && pi < 2 ? 10 : 0.01}
+                      min={0}
+                      value={profile[axis]?.[param] ?? ''}
+                      onChange={e => update(`${axis}.${param}`, parseFloat(e.target.value) || 0)}
+                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-sm text-white font-mono text-center focus:outline-none focus:border-violet-500 [appearance:textfield]"
+                    />
+                  </td>
+                ))}
+                <td className="px-2 py-2 text-cyan-300 font-mono font-semibold text-right">
+                  {getPeakRate(profile, axis)}°/s
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
 
         {/* Throttle */}
         <div className="grid grid-cols-2 gap-4">
@@ -427,6 +599,9 @@ export default function RatesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [filterQuad, setFilterQuad] = useState('all');
+  const [detailRate, setDetailRate] = useState(null);
+  const [compareList, setCompareList] = useState([]);
+  const [showCompare, setShowCompare] = useState(false);
 
   // Persist custom rates
   useEffect(() => { saveCustomRates(customRates); }, [customRates]);
@@ -443,6 +618,14 @@ export default function RatesPage() {
   const handleDelete = useCallback((id) => {
     if (!confirm('Delete this rate profile?')) return;
     setCustomRates(prev => prev.filter(r => r.id !== id));
+  }, []);
+
+  const toggleCompare = useCallback((rate) => {
+    setCompareList(prev => {
+      if (prev.find(r => r.id === rate.id)) return prev.filter(r => r.id !== rate.id);
+      if (prev.length >= 3) return prev; // max 3
+      return [...prev, rate];
+    });
   }, []);
 
   const filterFn = useCallback((profile) => {
@@ -510,7 +693,28 @@ export default function RatesPage() {
         </select>
       </div>
 
-      {/* Community Rates */}
+      {/* ── MY RATES (first) ───────────────────────────────────── */}
+      <div className="space-y-3">
+        <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+          <User size={13} className="text-cyan-400" /> My Rates ({filteredCustom.length})
+        </h2>
+        {filteredCustom.length === 0 && (
+          <div className="flex flex-col items-center gap-2 py-6 text-gray-500 bg-gray-800/30 rounded-xl border border-dashed border-gray-700">
+            <p className="text-sm">No custom rates yet.</p>
+            <button onClick={() => setEditing('new')} className="text-xs text-violet-400 hover:text-violet-300 underline">
+              Create your first rate profile
+            </button>
+          </div>
+        )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {filteredCustom.map(r => (
+            <RateCard key={r.id} profile={r} onEdit={setEditing} onDelete={handleDelete}
+              onClick={setDetailRate} compareList={compareList} onToggleCompare={toggleCompare} />
+          ))}
+        </div>
+      </div>
+
+      {/* ── COMMUNITY RATES (second) ─────────────────────────── */}
       <div className="space-y-3">
         <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-2">
           <Award size={13} className="text-violet-400" /> Community Rates ({filteredCommunity.length})
@@ -520,35 +724,55 @@ export default function RatesPage() {
         )}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {filteredCommunity.map(r => (
-            <RateCard key={r.id} profile={r} isCommunity />
+            <RateCard key={r.id} profile={r} isCommunity
+              onClick={setDetailRate} compareList={compareList} onToggleCompare={toggleCompare} />
           ))}
         </div>
       </div>
 
-      {/* Custom Rates */}
-      <div className="space-y-3">
-        <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-          <User size={13} className="text-cyan-400" /> My Rates ({filteredCustom.length})
-        </h2>
-        {filteredCustom.length === 0 && (
-          <div className="flex flex-col items-center gap-2 py-6 text-gray-500">
-            <p className="text-sm">No custom rates yet.</p>
-            <button onClick={() => setEditing('new')} className="text-xs text-violet-400 hover:text-violet-300 underline">
-              Create your first rate profile
+      {/* Compare bar */}
+      {compareList.length >= 1 && (
+        <div className="sticky bottom-0 bg-gray-900/95 backdrop-blur border-t border-gray-700 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 flex items-center gap-3 flex-wrap z-30">
+          <span className="text-xs text-gray-400">
+            <GitCompare size={12} className="inline mr-1" />
+            Comparing: <span className="text-white font-medium">{compareList.map(r => r.name).join(' vs ')}</span>
+          </span>
+          <div className="flex-1" />
+          {compareList.length >= 2 && (
+            <button onClick={() => setShowCompare(true)}
+              className="text-xs font-medium px-3 py-1.5 rounded-lg bg-cyan-700 hover:bg-cyan-600 text-white transition-colors">
+              Compare {compareList.length} Rates
             </button>
-          </div>
-        )}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {filteredCustom.map(r => (
-            <RateCard key={r.id} profile={r} onEdit={setEditing} onDelete={handleDelete} />
-          ))}
+          )}
+          <button onClick={() => setCompareList([])}
+            className="text-xs text-gray-500 hover:text-gray-300 px-2 py-1.5">
+            Clear
+          </button>
         </div>
-      </div>
+      )}
 
       {/* Note about PID presets */}
       <div className="text-xs text-gray-500 border-t border-gray-800 pt-4 text-center">
         Rates are separate from PID presets. Visit the <a href="#/presets" className="text-violet-400 hover:underline">Presets page</a> for PID tuning presets.
       </div>
+
+      {/* Detail Modal */}
+      {detailRate && (
+        <RateDetailModal
+          rate={detailRate}
+          onClose={() => setDetailRate(null)}
+          compareList={compareList}
+          onToggleCompare={toggleCompare}
+        />
+      )}
+
+      {/* Compare Modal */}
+      {showCompare && compareList.length >= 2 && (
+        <RateCompareModal
+          rates={compareList}
+          onClose={() => setShowCompare(false)}
+        />
+      )}
     </div>
   );
 }

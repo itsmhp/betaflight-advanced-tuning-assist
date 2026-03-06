@@ -1,66 +1,84 @@
-# 📚 Betaflight Advanced Tuning Assist — Penjelasan Lengkap & Detail
+# Betaflight Advanced Tuning Assist — Detailed Documentation
 
-## 📋 Daftar Isi
-
-1. [Tujuan Aplikasi](#1-tujuan-aplikasi)
-2. [Fungsi Utama](#2-fungsi-utama)
-3. [Teknologi & Bahasa Program](#3-teknologi--bahasa-program)
-4. [Fitur-Fitur Lengkap](#4-fitur-fitur-lengkap)
-5. [Cara Menggunakan Aplikasi](#5-cara-menggunakan-aplikasi)
-6. [Detail Teknis Setiap Fitur](#6-detail-teknis-setiap-fitur)
-7. [Teknologi Secara Mendalam](#7-teknologi-secara-mendalam)
-8. [Use Cases & Skenario Penggunaan](#8-use-cases--skenario-penggunaan)
-9. [Kelebihan Aplikasi](#9-kelebihan-aplikasi)
-10. [Cara Mengembangkan Aplikasi](#10-cara-mengembangkan-aplikasi)
+> **Last Updated:** March 2026
+> **Version:** 1.1.0
+> **Language:** English
+> **Author:** Hanif Pratama (mhp.hanif5@gmail.com)
 
 ---
 
-## 1. TUJUAN APLIKASI
+## Changelog
 
-Aplikasi ini dibuat untuk **membantu pilot FPV (drone racing) dalam melakukan tuning (pengaturan halus) pada flight controller Betaflight mereka**.
-
-### Masalah Sebelum Ada Aplikasi Ini:
-- Pilot harus membaca dokumentasi Betaflight yang panjang dan kompleks
-- Harus mengerti file `.bbl` (blackbox log) yang berisi data penerbangan
-- Menganalisis data secara manual (sangat time-consuming)
-- Menemukan preset tuning yang cocok melalui trial-and-error (tidak efisien)
-- Hasil tuning sering tidak optimal
-
-### Solusi Aplikasi Ini:
-- **Semua proses otomatis dan dipandu** langkah demi langkah
-- Pilot pemula hingga expert bisa mendapat rekomendasi tuning yang tepat
-- Rekomendasi **berbasis hardware drone mereka** dan **data penerbangan nyata**
-- Interface yang user-friendly, tidak perlu expert knowledge
-- Hemat waktu dan membuat hasil tuning lebih optimal
+| Date | Version | Changes |
+|------|---------|---------|
+| March 2026 | 1.1.0 | Multi-drone profiles, Rate Library (50+ community rates), Sequential Tuning Pipeline, Noise Heatmap, CLI Commands Panel, Pre-flight Checklist, Log Comparison, Rate Comparison (max 3), Flying Style & Quad Condition selectors, Electron desktop app, 4-language i18n |
+| March 2026 | 1.0.0 | Initial release — 15 analysis tools, 36 presets, WebSerial CLI, multi-language support |
 
 ---
 
-## 2. FUNGSI UTAMA
+## Table of Contents
 
-Aplikasi ini memiliki 5 fungsi inti:
+1. [Purpose](#1-purpose)
+2. [Core Functions](#2-core-functions)
+3. [Technology Stack](#3-technology-stack)
+4. [Complete Feature List](#4-complete-feature-list)
+5. [How to Use the App](#5-how-to-use-the-app)
+6. [Technical Details per Feature](#6-technical-details-per-feature)
+7. [Deep Dive: Technology](#7-deep-dive-technology)
+8. [Use Cases & Scenarios](#8-use-cases--scenarios)
+9. [App Strengths](#9-app-strengths)
+10. [Development Guide](#10-development-guide)
+11. [New in v1.1.0](#11-new-in-v110)
 
-### A. Profil Drone Pribadi
-- User memasukkan detail hardware drone mereka (frame, motor, propeller, battery, dll)
-- Data ini digunakan untuk memberikan rekomendasi yang **personalized** (sesuai dengan drone mereka, bukan generic)
-- Data tersimpan di browser, tidak dikirim ke server (privacy-first)
+---
+
+## 1. PURPOSE
+
+This application helps **FPV drone pilots fine-tune their Betaflight flight controllers** with data-driven, evidence-based recommendations.
+
+### Problems Before This App:
+- Pilots had to read lengthy, complex Betaflight documentation
+- Understanding `.bbl` (blackbox log) files requires specialized knowledge
+- Manual data analysis is extremely time-consuming
+- Finding the right tuning preset was trial-and-error
+- Tuning results were often suboptimal
+
+### How This App Solves It:
+- **Fully automated, guided process** — step by step
+- Suitable for beginners through experts
+- Recommendations are **based on your actual hardware** and **real flight data**
+- User-friendly interface — no expert knowledge required
+- Saves time and produces better tuning results
+
+---
+
+## 2. CORE FUNCTIONS
+
+The app has 7 core functions:
+
+### A. Personal Drone Profile
+- Enter your drone hardware details (frame, motors, propellers, battery, etc.)
+- Recommendations are **personalized** to your specific build
+- Data is stored in your browser only — never sent to any server (privacy-first)
+- Support for multiple drone profiles
 
 ### B. Smart Preset Engine
-- Ada **36 preset tuning** (9 ukuran frame × 4 level skill)
-- Preset ini **otomatis disesuaikan** berdasarkan profil drone user
-- **Tingkat skill yang tersedia:**
-  - Beginner (stabil, aman)
+- **36 tuning presets** (9 frame sizes × 4 skill levels)
+- Presets **auto-adjust** based on your drone profile
+- **Skill levels:**
+  - Beginner (stable, safe)
   - Intermediate (balanced, smooth)
-  - Advanced (agresif, responsif)
+  - Advanced (aggressive, responsive)
   - Expert (maximum performance, risky)
 
-### C. Analisis Blackbox
-- User upload file `.bbl` (log penerbangan mereka)
-- Aplikasi menganalisis data penerbangan dengan **15 tools analisis**
-- Memberikan rekomendasi **berbasis data nyata**, bukan teori saja
-- Tools mendeteksi: propwash, noise, motor imbalance, dll
+### C. Blackbox Analysis
+- Upload `.bbl` flight log files
+- The app runs **15 analysis tools** on your flight data
+- Provides recommendations **based on real data**, not just theory
+- Detects: propwash, noise, motor imbalance, oscillation, and more
 
-### D. Guided Workflow (Tutorial Step-by-Step)
-- **8 langkah pemandu interaktif:**
+### D. Guided Workflow (Step-by-Step)
+- **8-step interactive guide:**
   1. Profile Drone
   2. Upload Logs
   3. Select Preset
@@ -69,80 +87,97 @@ Aplikasi ini memiliki 5 fungsi inti:
   6. View Findings
   7. Apply Changes
   8. Test & Log
-- Cocok untuk pemula yang belum tahu harus mulai dari mana
+- Perfect for beginners who don't know where to start
 
 ### E. WebSerial CLI Terminal
-- User bisa langsung connect drone ke komputer melalui USB
-- Kirim perintah CLI Betaflight langsung dari aplikasi
-- Tidak perlu buka Betaflight Configurator terpisah
-- Real-time command execution dan output display
+- Connect your drone directly via USB
+- Send Betaflight CLI commands from within the app
+- No need to open Betaflight Configurator separately
+- Real-time command execution and output display
+
+### F. Rate Profiles Library (NEW in v1.1.0)
+- **50+ community rate presets** from top FPV pilots
+- Create, save, and manage your own custom rates
+- Visual rate curve preview with Canvas 2D rendering
+- Rate comparison — compare up to 3 profiles side by side
+- Copy-ready CLI commands for instant application
+- Filter by quad type, rate type, and search by pilot name
+
+### G. Sequential Tuning Pipeline (NEW in v1.1.0)
+- 7-stage guided tuning in the correct order:
+  **Noise → Filters → PIDs → Feedforward → TPA → Anti-Gravity → Verification**
+- Each stage is gate-locked — you can't tune PIDs on noisy motors
+- Progress tracking with visual indicators
 
 ---
 
-## 3. TEKNOLOGI & BAHASA PROGRAM
+## 3. TECHNOLOGY STACK
 
 ### Frontend Stack:
-| Teknologi | Versi | Fungsi |
-|-----------|-------|--------|
-| **React** | 18+ | Library JavaScript untuk UI interaktif |
-| **Vite** | 4+ | Build tool yang super cepat |
-| **WebSerial API** | Native | Komunikasi USB dengan drone |
-| **Canvas/SVG** | Native | Render charts dan visualisasi |
-| **localStorage** | Native | Simpan drone profile di browser |
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| **React** | 19+ | Interactive UI library |
+| **Vite** | 6.4+ | Ultra-fast build tool |
+| **Tailwind CSS** | 4.2+ | Utility-first CSS framework |
+| **Lucide React** | 0.576+ | Icon library |
+| **WebSerial API** | Native | USB communication with flight controllers |
+| **Canvas 2D API** | Native | Rate curves, heatmaps, charts |
+| **localStorage** | Native | Persistent data storage in browser |
+| **Electron** | 40+ | Desktop app wrapper (Windows/Mac/Linux) |
 
 ### Backend:
-- **Tidak ada backend server** (Pure Frontend)
-- Semua analisis terjadi di browser user (client-side)
-- Tidak ada data yang dikirim ke server (privacy-first)
-- Aplikasi bisa offline-first
+- **No backend server** — Pure Frontend application
+- All analysis runs in the user's browser (client-side)
+- No data is ever sent to any server (privacy-first)
+- Works fully offline
 
-### Bahasa Pemrograman Utama:
+### Programming Languages:
 - **JavaScript/JSX** (99%)
 - **CSS** (1%)
-- Tidak menggunakan TypeScript (untuk fleksibilitas)
+- No TypeScript — chosen for flexibility and faster iteration
 
-### Bahasa yang Didukung oleh Aplikasi:
-1. **English** (Inggris)
+### Supported App Languages (i18n):
+1. **English**
 2. **Bahasa Indonesia**
-3. **Español** (Spanyol)
-4. **Deutsch** (Jerman)
+3. **Español** (Spanish)
+4. **Deutsch** (German)
 
 ---
 
-## 4. FITUR-FITUR LENGKAP
+## 4. COMPLETE FEATURE LIST
 
-### A. Dashboard (Halaman Utama)
-**Apa itu:**
-- Halaman pertama yang dilihat user saat buka aplikasi
-- Overview/ringkasan dari semua analysis results
+### A. Dashboard (Home Page)
+**What it is:**
+- The first page users see when opening the app
+- Overview/summary of all analysis results
 
-**Menampilkan:**
-- Status kesehatan drone secara keseluruhan
-- Skor PID health (0-100)
-- Quick summary dari 15 analysis tools
-- Key findings dan rekomendasi
-- Quick access ke semua tools
+**Displays:**
+- Overall drone health status
+- PID health score (0-100)
+- Quick summary from 15 analysis tools
+- Key findings and recommendations
+- Quick access to all tools
 
 ### B. Drone Profile Page
-**Apa itu:**
-- Form lengkap untuk input semua hardware detail drone
+**What it is:**
+- Comprehensive form for entering all drone hardware details
 
-**Field yang tersedia:**
+**Available fields:**
 ```
 Hardware Details:
 ├── Drone Basic Info
-│   ├── Drone name (custom nama)
-│   ├── Frame size (250mm, 3", 5", 7", dll)
+│   ├── Drone name (custom)
+│   ├── Frame size (250mm, 3", 5", 7", etc.)
 │   └── Total weight (grams)
 │
 ├── Motor Specs
-│   ├── KV rating (1100KV, 2300KV, dll)
+│   ├── KV rating (1100KV, 2300KV, etc.)
 │   ├── Amperage rating
 │   └── Brand
 │
 ├── Propeller Specs
-│   ├── Diameter (5.1", 6", 7", dll)
-│   ├── Pitch (3-blade, 2-blade, etc)
+│   ├── Diameter (5.1", 6", 7", etc.)
+│   ├── Pitch (3-blade, 2-blade, etc.)
 │   └── Brand
 │
 ├── Battery Specs
@@ -161,14 +196,14 @@ Hardware Details:
     └── Weight category
 ```
 
-**Kenapa penting:**
-- Setiap hardware punya karakteristik unik
-- Preset akan disesuaikan berdasarkan data ini
-- Analysis tools akan lebih akurat dengan context
+**Why this matters:**
+- Every hardware combination has unique characteristics
+- Presets auto-adjust based on this data
+- Analysis tools produce more accurate results with hardware context
 
 ### C. Presets Page
-**Apa itu:**
-- Grid berisi 36 preset tuning siap pakai
+**What it is:**
+- Grid of 36 ready-to-use tuning presets
 
 **Structure:**
 ```
@@ -176,7 +211,6 @@ Hardware Details:
 │           Betaflight Advanced Tuning Assist      │
 │                    PRESETS GRID                  │
 ├─────────────────────────────────────────────────┤
-│                                                 │
 │  Frame Size ↓                   Skill Level ↓  │
 │                    Beginner │ Inter │ Adv │ Ex │
 │  ┌──────────────────────────────────────────┐  │
@@ -186,11 +220,10 @@ Hardware Details:
 │  │ 7-inch  │  [PID] │ [PID] │ [PID] │ [PID] │  │
 │  │ ...     │  [...] │ [...] │ [...] │ [...] │  │
 │  └──────────────────────────────────────────┘  │
-│                                                 │
 └─────────────────────────────────────────────────┘
 ```
 
-**Setiap preset berisi:**
+**Each preset contains:**
 ```
 Roll PID:           Pitch PID:          Yaw PID:
 ├── P = XX.X        ├── P = XX.X        ├── P = XX.X
@@ -209,9 +242,9 @@ Advanced Settings:
 ```
 
 **Smart Adjustment Engine:**
-- User upload blackbox log
-- Sistem analyze log
-- Preset values **otomatis disesuaikan** berdasarkan:
+- User uploads blackbox log
+- System analyzes the log
+- Preset values **auto-adjust** based on:
   - Motor health
   - Propwash signature
   - Noise profile
@@ -219,78 +252,78 @@ Advanced Settings:
   - Current PID response
 
 ### D. Tune Your Quad Workflow (8 Steps)
-**Apa itu:**
-- Interactive guided tour untuk complete tuning process
-- Seperti "wizard" atau "tutorial" yang memandu dari awal hingga akhir
+**What it is:**
+- Interactive guided tour for the complete tuning process
+- Like a "wizard" that guides you from start to finish
 
-**8 Langkah Workflow:**
+**8-Step Workflow:**
 
-| Step | Nama | Apa yang dilakukan |
-|------|------|-------------------|
-| 1 | Profile Drone | Input semua hardware detail |
-| 2 | Upload Logs | Upload CLI dump + blackbox log (opsional) |
-| 3 | Select Preset | Pilih frame size + skill level |
-| 4 | Review Preset | Review PID values dan settings |
+| Step | Name | What it does |
+|------|------|-------------|
+| 1 | Profile Drone | Enter all hardware details |
+| 2 | Upload Logs | Upload CLI dump + blackbox log (optional) |
+| 3 | Select Preset | Pick frame size + skill level |
+| 4 | Review Preset | Review PID values and settings |
 | 5 | Analyze Flight | Run 15 analysis tools |
-| 6 | View Findings | Lihat chart, score, rekomendasi |
-| 7 | Apply Changes | Copy + paste CLI commands ke FC |
-| 8 | Test & Log | Terbang dan record log baru |
+| 6 | View Findings | View charts, scores, recommendations |
+| 7 | Apply Changes | Copy + paste CLI commands to FC |
+| 8 | Test & Log | Fly and record new log |
 
 **Interface Design:**
-- Stepper component menunjukkan progress
-- Next/Previous buttons navigasi between steps
-- Form validation di setiap step
-- Summary di step terakhir
+- Stepper component shows progress
+- Next/Previous buttons for navigation
+- Form validation at each step
+- Summary in the final step
 
 ### E. PID Health Analyzer
-**Apa itu:**
-- Dashboard dengan 15 analysis tools
-- Mengevaluasi kualitas tuning dari user
+**What it is:**
+- Dashboard of 15 analysis tools
+- Evaluates the quality of user's current tuning
 
-**15 Analysis Tools Lengkap:**
+**15 Analysis Tools:**
 
-| # | Tool | Apa yang dianalisis | Output |
-|----|------|-----|--------|
-| 1 | **Step Response** | Waktu respon per axis, overshoot %, damping ratio | Waktu respon (ms), overshoot (%), Zeta damping |
-| 2 | **Motor Health** | Keseimbangan motor, vibration detection | Motor balance score, cross-correlation analysis |
-| 3 | **TPA Analyzer** | Titik breakpoint TPA yang optimal | Breakpoint detection, TPA curve |
-| 4 | **Propwash Detector** | Deteksi propwash, rekomendasi filter | Energy at 20-100Hz, recommended filter |
+| # | Tool | What it analyzes | Output |
+|----|------|-----------------|--------|
+| 1 | **Step Response** | Response time per axis, overshoot %, damping ratio | Response time (ms), overshoot (%), Zeta damping |
+| 2 | **Motor Health** | Motor balance, vibration detection | Motor balance score, cross-correlation |
+| 3 | **TPA Analyzer** | Optimal TPA breakpoint | Breakpoint detection, TPA curve |
+| 4 | **Propwash Detector** | Propwash detection, filter recommendations | Energy at 20-100Hz, recommended filter |
 | 5 | **Dynamic Idle** | Idle mode detection, RPM relaxation | Idle window, relaxation curve |
 | 6 | **Anti-Gravity** | Throttle punch drift detection | Drift detection, severity grading |
-| 7 | **I-Term Buildup** | Deteksi akumulasi I-term berlebihan | Accumulation rate, axis bias |
+| 7 | **I-Term Buildup** | Excessive I-term accumulation | Accumulation rate, axis bias |
 | 8 | **Feedforward Health** | Lag analysis, responsiveness check | FF lag (ms), response lag, health score |
 | 9 | **Thrust Linearization** | PID effort slope analysis | MAPE score, dual onset detection |
 | 10 | **Stick Movement** | Smoothness, jitter, bounce-back | Jitter (%), smoothness %, expo suggestions |
 | 11 | **Throttle Axis** | Hover point detection, flight style | Hover point (%), axis usage histogram |
-| 12 | **PID Contribution** | P/D/F ratio analysis | RMS ratios untuk P, D, F |
+| 12 | **PID Contribution** | P/D/F ratio analysis | RMS ratios for P, D, F |
 | 13 | **Noise Analyzer** | FFT spectrum, harmonic detection | Noise spectrum chart, RPM harmonics |
 | 14 | **Filter Analyzer** | Lowpass/notch config validation | Filter audit, recommendations |
-| 15 | **Motor Doctor** | Detail vibration & health report | Vibration levels, health score |
+| 15 | **Motor Doctor** | Detailed vibration & health report | Vibration levels, health score |
 
 **Output Format:**
-- **Charts** — visualisasi data penerbangan
+- **Charts** — flight data visualization
 - **Health Scores** — numeric 0-100
 - **Recommendations** — actionable suggestions
 - **Severity Codes** — OK, Warning, Critical
 
 ### F. Serial CLI Terminal
-**Apa itu:**
-- Terminal interaktif untuk mengirim perintah langsung ke flight controller
-- Built-in CLI yang terintegrasi dalam aplikasi
+**What it is:**
+- Interactive terminal for sending commands directly to the flight controller
+- Built-in CLI integrated within the app
 
 **Features:**
-- **Connect via USB** — pilih COM port
-- **Type Commands** — ketik CLI command (contoh: `set p_roll = 50`)
-- **Auto-complete** — suggestions saat typing
-- **Command History** — arrow up/down untuk history
-- **Real-time Output** — lihat response dari FC langsung
-- **Copy/Paste** — paste CLI dumps (dari Configurator)
-- **Save Commands** — simpan command favorites
-- **Baud Rate Selection** — 115200, 230400, dll
+- **Connect via USB** — select COM port
+- **Type Commands** — type CLI commands (e.g., `set p_roll = 50`)
+- **Auto-complete** — suggestions while typing
+- **Command History** — arrow up/down for history
+- **Real-time Output** — see FC response instantly
+- **Copy/Paste** — paste CLI dumps (from Configurator)
+- **Save Commands** — save favorite commands
+- **Baud Rate Selection** — 115200, 230400, etc.
 
-**Workflow Typical:**
+**Typical Workflow:**
 ```bash
-# Connect (manual di UI)
+# Connect (manual in UI)
 # Output: Connected to COM3 at 115200 baud
 
 # User input
@@ -317,18 +350,18 @@ Done.
 
 ### G. File Upload & Export
 **Upload Support:**
-- **CLI Dump** (`.txt`) — hasil `dump all` dari Betaflight CLI
-- **Blackbox Log** (`.bbl`) — hasil flight log dari SD card
+- **CLI Dump** (`.txt`) — output from `dump all` in Betaflight CLI
+- **Blackbox Log** (`.bbl`) — flight log from SD card
 
 **Upload UI:**
 - Drag-and-drop area
 - File picker button
-- Validation (cek file format, size)
-- Error messages jika format salah
+- Validation (checks file format, size)
+- Error messages for incorrect formats
 
 **Export Features:**
 - Export analysis results
-- Copy CLI commands ke clipboard
+- Copy CLI commands to clipboard
 - Generate readable report
 
 ### H. Multi-Language UI
@@ -339,7 +372,7 @@ Done.
 4. **Deutsch** — German translations
 
 **What's Translated:**
-- Semua UI labels
+- All UI labels
 - Button text
 - Form field names
 - Error messages
@@ -347,229 +380,229 @@ Done.
 - Help text
 
 **How to Use:**
-- Language selector di sidebar (flag icons)
-- Click flag untuk switch language
-- Language preference disimpan di localStorage
-- Default = browser language setting (jika supported)
+- Language selector in sidebar (flag icons)
+- Click flag to switch language
+- Language preference saved in localStorage
+- Default = browser language setting (if supported)
 
 ### I. Error Handling & User Feedback
 **Error Boundary:**
-- Catch unhandled errors
+- Catches unhandled errors
 - Graceful fallback UI
-- Error stack trace di console
+- Error stack trace in console
 - User-friendly error messages
 
 **Upload Validation:**
-- Cek file format (CLI dump atau .bbl)
-- Cek file size (tidak terlalu besar)
+- Checks file format (CLI dump or .bbl)
+- Checks file size (not too large)
 - Parse error handling
-- Clear error messages di UI
+- Clear error messages in UI
 
 **User Feedback:**
-- Loading spinners untuk long operations
-- Toast notifications untuk hasil
-- Progress bars untuk file upload
-- Confirmation dialogs untuk destructive actions
+- Loading spinners for long operations
+- Toast notifications for results
+- Progress bars for file uploads
+- Confirmation dialogs for destructive actions
 
 ---
 
-## 5. CARA MENGGUNAKAN APLIKASI
+## 5. HOW TO USE THE APP
 
-### SETUP AWAL (5 menit)
+### INITIAL SETUP (5 minutes)
 
-#### **Langkah 1: Buka Aplikasi**
+#### **Step 1: Open the App**
 ```
-Pilihan A: Deployed online
-→ Buka URL di browser (akan disediakan)
+Option A: Deployed online
+→ Open URL in browser (will be provided)
 
-Pilihan B: Run lokal
+Option B: Run locally
 → Clone repo
 → npm install
 → npm run dev
-→ Buka http://localhost:5173
+→ Open http://localhost:5173
 ```
 
-#### **Langkah 2: Pilih Bahasa**
+#### **Step 2: Select Language**
 ```
-→ Lihat sidebar
-→ Cari language selector (flag icons)
-→ Klik flag untuk bahasa yang diinginkan
-→ Page akan refresh dengan bahasa baru
+→ Look at sidebar
+→ Find language selector (flag icons)
+→ Click flag for desired language
+→ Page will refresh with new language
 ```
 
-#### **Langkah 3: Isi Drone Profile**
+#### **Step 3: Fill In Drone Profile**
 ```
-→ Klik tab "My Drone"
-→ Isi semua field:
+→ Click "My Drone" tab
+→ Fill in all fields:
    - Drone name (custom)
-   - Frame size (pilih dari dropdown)
+   - Frame size (select from dropdown)
    - Motor KV, amperage
    - Propeller diameter, pitch
    - Battery cells, mAh
    - FC model, Betaflight version
    - Weight (estimated grams)
    - Flight time estimation
-→ Klik "Save Profile"
+→ Click "Save Profile"
 ```
 
 ---
 
-### WORKFLOW TUNING OPTION A: DENGAN BLACKBOX LOG (RECOMMENDED)
+### TUNING WORKFLOW OPTION A: WITH BLACKBOX LOG (RECOMMENDED)
 
-**Durasi:** ~30 menit (termasuk terbang test)
+**Duration:** ~30 minutes (including test flight)
 
-#### **Step 1: Persiapkan Files**
+#### **Step 1: Prepare Files**
 ```
-Di drone/FC sebelumnya:
-1. Buka Betaflight Configurator
-2. Pilih CLI tab
-3. Ketik: dump all
-4. Tekan Enter
-5. Klik "Save to File" → simpan sebagai .txt (ini CLI dump)
+On your drone/FC beforehand:
+1. Open Betaflight Configurator
+2. Select CLI tab
+3. Type: dump all
+4. Press Enter
+5. Click "Save to File" → save as .txt (this is the CLI dump)
 
-Dari SD card drone:
-1. Copy .bbl file (blackbox log dari penerbangan terakhir)
-2. Catat file path
+From drone's SD card:
+1. Copy .bbl file (blackbox log from last flight)
+2. Note the file path
 ```
 
-#### **Step 2: Upload ke Aplikasi**
+#### **Step 2: Upload to the App**
 ```
-Di aplikasi:
-1. Klik tab "Dashboard" atau "Tune Your Quad"
-2. Cari section "Upload Files"
-3. Drag-drop atau browse untuk:
+In the app:
+1. Click "Dashboard" or "Tune Your Quad" tab
+2. Find the "Upload Files" section
+3. Drag-drop or browse for:
    - Select CLI dump file (.txt)
    - Select blackbox log file (.bbl)
-4. Klik "Upload" dan tunggu processing
-5. Aplikasi akan parse dan analyze files
+4. Click "Upload" and wait for processing
+5. The app will parse and analyze files
 ```
 
-#### **Step 3: Pilih Preset**
+#### **Step 3: Select Preset**
 ```
-Di aplikasi:
-1. Klik tab "Presets"
-2. Lihat grid 9 frame sizes × 4 skill levels
-3. Contoh: User punya 5-inch drone dan skill "Advanced"
-   → Cari row "5-inch" dan column "Advanced"
-   → Klik cell tersebut
-4. Sistem akan:
+In the app:
+1. Click "Presets" tab
+2. See grid of 9 frame sizes × 4 skill levels
+3. Example: User has a 5-inch drone and "Advanced" skill
+   → Find row "5-inch" and column "Advanced"
+   → Click that cell
+4. The system will:
    - Load base preset values
-   - Auto-adjust berdasarkan blackbox data
-   - Show "Adjusted Preset" dengan tweaks yang di-apply
+   - Auto-adjust based on blackbox data
+   - Show "Adjusted Preset" with applied tweaks
 ```
 
 #### **Step 4: Review Preset**
 ```
-Di aplikasi:
-1. Lihat recommended PID values
+In the app:
+1. See recommended PID values
    - Roll P/I/D
    - Pitch P/I/D
    - Yaw P/I/D
-2. Lihat filter settings
+2. See filter settings
    - Lowpass frequency
    - Notch settings
    - D-term filter
-3. Lihat advanced settings
+3. See advanced settings
    - TPA rate
    - Anti-gravity
    - Feedforward
-4. Klik "Generate CLI Commands" untuk copy CLI dump
+4. Click "Generate CLI Commands" to copy CLI dump
 ```
 
-#### **Step 5: Analisis Flight Data**
+#### **Step 5: Analyze Flight Data**
 ```
-Di aplikasi:
-1. Klik tab "PID Health"
-2. Lihat 15 analysis results dari blackbox log Anda:
+In the app:
+1. Click "PID Health" tab
+2. See 15 analysis results from your blackbox log:
    - Step response charts
    - Motor health scores
    - TPA analysis
    - Propwash detection
    - Noise spectrum
-   - dll...
-3. Baca recommendations
+   - etc...
+3. Read recommendations
 4. Note problematic areas
 ```
 
 #### **Step 6: View Findings**
 ```
-Output dari analisis:
+Analysis output:
 1. Overall tuning score (0-100)
 2. Health status per axis (OK, Warning, Critical)
 3. Specific findings per analysis tool
 4. Recommended PID adjustments
-5. Charts dan data visualization
+5. Charts and data visualization
 ```
 
-#### **Step 7: Apply Changes (Pilihan A: Klik-klik)**
+#### **Step 7: Apply Changes (Option A: Click-through)**
 ```
-Langkah A: Langsung apply via CLI Terminal
-1. Klik tab "CLI Terminal"
-2. Pilih COM port drone (connect via USB)
-3. Paste CLI commands dari aplikasi
-4. Tekan Enter
-5. Tunggu FC acknowledge
+Option A: Apply directly via CLI Terminal
+1. Click "CLI Terminal" tab
+2. Select drone COM port (connect via USB)
+3. Paste CLI commands from the app
+4. Press Enter
+5. Wait for FC to acknowledge
 6. Type: save
-7. FC akan restart
+7. FC will restart
 
-Langkah B: Manual copy-paste ke Configurator
-1. Copy dari aplikasi
-2. Buka Betaflight Configurator
-3. Pilih CLI tab
+Option B: Manual copy-paste to Configurator
+1. Copy from the app
+2. Open Betaflight Configurator
+3. Select CLI tab
 4. Paste commands
-5. Ketik: save
+5. Type: save
 ```
 
 #### **Step 8: Test & Log**
 ```
 1. Safety check: Arm drone, test stability
-2. Short test flight (2-3 menit)
-3. Land dan download blackbox log
-4. Kembali ke aplikasi
-5. Upload log baru ke analyze lagi
-6. Ulangi Step 3-8 untuk fine-tuning lebih lanjut
+2. Short test flight (2-3 minutes)
+3. Land and download blackbox log
+4. Return to the app
+5. Upload new log to analyze again
+6. Repeat Steps 3-8 for further fine-tuning
 ```
 
 ---
 
-### WORKFLOW TUNING OPTION B: TANPA BLACKBOX (QUICK START)
+### TUNING WORKFLOW OPTION B: WITHOUT BLACKBOX (QUICK START)
 
-**Durasi:** ~10 menit
+**Duration:** ~10 minutes
 
-#### **Step 1: Isi Drone Profile**
+#### **Step 1: Fill In Drone Profile**
 ```
-→ Klik "My Drone"
-→ Isi semua field hardware
+→ Click "My Drone"
+→ Fill in all hardware fields
 → Save
 ```
 
-#### **Step 2: Pilih Preset**
+#### **Step 2: Select Preset**
 ```
-→ Klik "Presets"
-→ Pilih frame size + skill level yang match
-→ Lihat PID values yang recommended
+→ Click "Presets"
+→ Select matching frame size + skill level
+→ See recommended PID values
 ```
 
 #### **Step 3: Review & Copy**
 ```
 → Review values
-→ Klik "Copy CLI Commands"
-→ Paste ke Betaflight CLI
-→ Ketik: save
+→ Click "Copy CLI Commands"
+→ Paste into Betaflight CLI
+→ Type: save
 ```
 
 **Benefit:**
-- Cepat dan simple
-- Cocok untuk quick setup atau troubleshooting
-- Tidak butuh blackbox log
+- Fast and simple
+- Great for quick setup or troubleshooting
+- No blackbox log required
 
 **Limitation:**
-- Tidak ada data-driven adjustment
-- Preset generic, tidak fully personalized
+- No data-driven adjustment
+- Generic preset, not fully personalized
 
 ---
 
-## 6. DETAIL TEKNIS SETIAP FITUR
+## 6. TECHNICAL DETAILS PER FEATURE
 
 ### A. Drone Profile Context
 **React Context:**
@@ -577,7 +610,7 @@ Langkah B: Manual copy-paste ke Configurator
 // DroneProfileContext.jsx
 const DroneProfileContext = createContext();
 
-// Data structure yang tersimpan
+// Data structure stored
 {
   drone_name: "My 5-inch",
   frame_size: "5-inch",  // options: 250, 3", 5", 7", dll
@@ -616,13 +649,13 @@ const DroneProfileContext = createContext();
 ```
 
 **Storage:**
-- Disimpan di browser's `localStorage`
-- Key: `droneProfiles` (object dengan array)
+- Stored in browser's `localStorage`
+- Key: `droneProfiles` (object with array)
 - Persist across sessions
-- Tidak dikirim ke server
+- Not sent to any server
 
 ### B. Smart Presets Engine
-**File:** `src/lib/presets.js` dan `src/lib/smartPresets.js`
+**File:** `src/lib/presets.js` and `src/lib/smartPresets.js`
 
 **Preset Structure:**
 ```javascript
@@ -655,7 +688,7 @@ const presets = {
 Input:
 ├── Base preset values
 ├── Drone profile
-└── Blackbox log (opsional)
+└── Blackbox log (optional)
 
 Processing:
 ├── Analyze blackbox metrics
@@ -676,12 +709,12 @@ Output:
 
 **Adjustment Factors:**
 ```javascript
-// Contoh adjustment algorithm
+// Example adjustment algorithm
 const motorHealthScore = analyzeMotorHealth(blackboxData);
 const propwashDetected = analyzeropwash(blackboxData);
 const noiseLevel = analyzeNoise(blackboxData);
 
-// Hitung adjustment factors
+// Calculate adjustment factors
 const pMultiplier = motorHealthScore > 0.8 ? 1.1 : 0.9;  // Increase/decrease P
 const iMultiplier = propwashDetected ? 0.95 : 1.0;  // Reduce I if propwash
 const dMultiplier = noiseLevel > 0.6 ? 0.95 : 1.05;  // Reduce D if noisy
@@ -690,7 +723,7 @@ const dMultiplier = noiseLevel > 0.6 ? 0.95 : 1.05;  // Reduce D if noisy
 adjustedPreset.roll.p = basePreset.roll.p * pMultiplier;
 adjustedPreset.roll.i = basePreset.roll.i * iMultiplier;
 adjustedPreset.roll.d = basePreset.roll.d * dMultiplier;
-// ... repeat for pitch dan yaw
+// ... repeat for pitch and yaw
 ```
 
 ### C. Blackbox Analysis
@@ -737,7 +770,7 @@ Output: Structured data for analysis tools
 ```
 
 ### D. Analysis Tools Implementation
-**Base Structure Setiap Tool:**
+**Base Structure per Tool:**
 
 ```javascript
 // File: src/lib/analyzers/stepResponseAnalyzer.js
@@ -859,7 +892,7 @@ CliTerminal:
 
 ---
 
-## 7. TEKNOLOGI SECARA MENDALAM
+## 7. DEEP DIVE: TECHNOLOGY
 
 ### React Hooks & Patterns
 ```javascript
@@ -966,44 +999,44 @@ const overshoot = Math.max(...peaks);
 
 ---
 
-## 8. USE CASES & SKENARIO PENGGUNAAN
+## 8. USE CASES & SCENARIOS
 
-### Skenario 1: Pemula Baru Beli Drone (5 menit)
-**User Profile:** Baru pertama kali flying FPV
+### Scenario 1: Beginner Just Bought a Drone (5 minutes)
+**User Profile:** First-time FPV pilot
 
 **Workflow:**
 ```
-1. Buka aplikasi
-2. "My Drone" → input frame size (skipped detailed specs)
-3. "Presets" → pilih "250mm Beginner"
+1. Open the app
+2. "My Drone" → input frame size (skip detailed specs)
+3. "Presets" → select "250mm Beginner"
 4. Copy preset values
-5. Apply via Betaflight Configurator atau CLI Terminal
-6. Fly dan enjoy!
+5. Apply via Betaflight Configurator or CLI Terminal
+6. Fly and enjoy!
 ```
 
-**Why Preset Beginner:**
-- Stabilitas tinggi
-- Response slow (less aggressive)
-- Safe untuk pemula
-- Less likely untuk crash
+**Why Beginner Preset:**
+- High stability
+- Slow response (less aggressive)
+- Safe for beginners
+- Less likely to crash
 
 ---
 
-### Szenario 2: Advanced Pilot Optimize Performance (45 menit)
-**User Profile:** Sudah berpengalaman, mau max performance
+### Scenario 2: Advanced Pilot Optimize Performance (45 minutes)
+**User Profile:** Experienced pilot, wants max performance
 
 **Workflow:**
 ```
 1. Upload detailed profile (frame, motor KV, props, battery)
-2. Flight sebelumnya → download blackbox log
+2. Previous flight → download blackbox log
 3. Upload CLI dump + .bbl file
-4. "Presets" → pilih "5-inch Advanced"
-5. Aplikasi auto-adjust preset berdasarkan blackbox
+4. "Presets" → select "5-inch Advanced"
+5. App auto-adjusts preset based on blackbox
 6. "PID Health" → analyze 15 tools
 7. Review recommendations
 8. Fine-tune PID values based on insights
 9. Apply via CLI Terminal
-10. Short test flight & repeat untuk fine-tuning
+10. Short test flight & repeat for fine-tuning
 ```
 
 **Why Advanced Preset + Blackbox Analysis:**
@@ -1014,21 +1047,21 @@ const overshoot = Math.max(...peaks);
 
 ---
 
-### Szenario 3: Troubleshooting Unstable Drone (20 menit)
-**User Profile:** Drone flying unstable, wobbly, atau oscillating
+### Scenario 3: Troubleshooting Unstable Drone (20 minutes)
+**User Profile:** Drone flying unstable, wobbly, or oscillating
 
 **Workflow:**
 ```
-1. Terbang dan record "bad flight" log
+1. Fly and record "bad flight" log
 2. Download blackbox file
-3. Upload ke aplikasi
+3. Upload to the app
 4. Go to "PID Health"
 5. Look for specific issues:
    - Motor vibration? → Motor Doctor
    - Oscillation? → Step Response
    - Noise/jitter? → Noise Analyzer
    - (etc)
-6. Find root cause dari analysis
+6. Find root cause from analysis
 7. Get specific recommendations
 8. Apply targeted tuning changes
 9. Test again with new log recording
@@ -1040,62 +1073,62 @@ const overshoot = Math.max(...peaks);
 |---------|---------------|-----------|
 | Wobbly/Oscsillating | Step Response | Reduce P gain |
 | Jittery flight | Noise Analyzer | Lower D-term, increase filter frequency |
-| Motor vibration | Motor Doctor | Mechanical issue atau ESC problem |
+| Motor vibration | Motor Doctor | Mechanical issue or ESC problem |
 | Propwash on flips | Propwash Detector | Lower lowpass filter |
 | Unresponsive | Feedforward Health | Increase FF gain |
 | Drifts on throttle punch | Anti-Gravity | Adjust AG slider |
 
 ---
 
-### Szenario 4: Comparing Setups (30 menit)
-**User Profile:** Punya 2 drone, mau tahu mana setup lebih good
+### Scenario 4: Comparing Setups (30 minutes)
+**User Profile:** Has 2 drones, wants to know which setup is better
 
 **Workflow:**
 ```
 1. Create 2 profiles (drone A & B)
-2. Upload logs dari masing-masing
-3. Get presets untuk kedua drone
-4. Run analysis untuk both
+2. Upload logs from each
+3. Get presets for both drones
+4. Run analysis for both
 5. Compare tuning scores
 6. Compare analysis results
-7. Recommendation: Switch to better setup atau hybrid tuning
+7. Recommendation: Switch to better setup or hybrid tuning
 ```
 
 ---
 
-## 9. KELEBIHAN APLIKASI
+## 9. APP STRENGTHS
 
-✅ **Sangat user-friendly**
+✅ **Very user-friendly**
 - Guided workflow, no CLI knowledge needed
-- Tidak perlu expert untuk mulai tuning
+- No expert knowledge needed to start tuning
 
 ✅ **Data-driven**
-- Analyze real flight logs, bukan guessing
-- Smart adjustment berdasarkan drone hardware
+- Analyze real flight logs, not guessing
+- Smart adjustment based on drone hardware
 
 ✅ **Personalized**
-- Preset auto-adjust untuk hardware Anda
-- Rekomendasi berbasis profil drone
+- Preset auto-adjusts to your hardware
+- Recommendations based on drone profile
 
 ✅ **Offline first**
-- Semua proses di browser, tidak butuh server
-- Privacy terjaga, data tidak dikirim ke cloud
+- All processing in browser, no server needed
+- Privacy preserved, data not sent to cloud
 
 ✅ **Comprehensive**
 - 15 analysis tools = thorough diagnostics
-- Covers semua major Betaflight tuning parameters
+- Covers all major Betaflight tuning parameters
 
 ✅ **Real-time**
-- WebSerial CLI = apply settings tanpa keluar aplikasi
-- Instant feedback dari FC
+- WebSerial CLI = apply settings without leaving the app
+- Instant feedback from FC
 
 ✅ **Multi-language**
-- Support 4 bahasa
-- Accessible untuk FPV community global
+- Supports 4 languages
+- Accessible to the global FPV community
 
 ✅ **Open source**
-- GitHub link tersedia
-- Bisa di-fork, di-improve, di-customize
+- GitHub link available
+- Can be forked, improved, and customized
 - Community contributions welcome
 
 ✅ **Fast & responsive**
@@ -1111,14 +1144,14 @@ const overshoot = Math.max(...peaks);
 
 ---
 
-## 10. CARA MENGEMBANGKAN APLIKASI
+## 10. DEVELOPMENT GUIDE
 
-### Install & Setup Lokal
+### Local Install & Setup
 
 #### **Prerequisites:**
 ```
 - Node.js 16+ installed
-- npm atau yarn package manager
+- npm or yarn package manager
 - Git installed
 - Code editor (VS Code recommended)
 ```
@@ -1138,7 +1171,7 @@ npm run build
 
 #### **Run Development Server:**
 ```bash
-# Start dev server dengan hot reload
+# Start dev server with hot reload
 npm run dev
 
 # Output:
@@ -1147,7 +1180,7 @@ npm run dev
 # ➜ Local:   http://localhost:5173/
 # ➜ Press h to show help
 
-# Buka browser → localhost:5173
+# Open browser → localhost:5173
 ```
 
 #### **Build for Production:**
@@ -1163,7 +1196,7 @@ npm run build
 # │   └── index-XXXXX.css
 # └── ...
 
-# dist/ folder siap untuk deploy
+# dist/ folder ready for deployment
 ```
 
 ### Project Structure Detail
@@ -1248,11 +1281,11 @@ betaflight-advanced-tuning-assist/
 |------|---------|
 | `App.jsx` | Root component, route setup |
 | `TuneWorkflowPage.jsx` | 8-step guided workflow stepper |
-| `Dashboard.jsx` | Overview dashboard dengan quick stats |
+| `Dashboard.jsx` | Overview dashboard with quick stats |
 | `PresetsPage.jsx` | 9×4 preset grid interface |
 | `DroneProfilePage.jsx` | Profile form editor |
 | `SerialCLIPage.jsx` | WebSerial terminal interface |
-| `analyzeAll.js` | Orchestrator untuk 15 analysis tools |
+| `analyzeAll.js` | Orchestrator for 15 analysis tools |
 | `presets.js` | 36 preset definitions |
 | `smartPresets.js` | Auto-adjustment algorithm |
 | `*Analyzer.js` | Individual analysis tools |
@@ -1263,7 +1296,7 @@ betaflight-advanced-tuning-assist/
 
 #### **Making Changes:**
 ```
-1. Edit file di src/
+1. Edit file in src/
 2. Save file
 3. Browser auto-refresh (HMR - Hot Module Reload)
 4. Test changes immediately
@@ -1380,16 +1413,64 @@ export const analyzeNewTool = (blackboxData) => {
 
 ---
 
-## Kesimpulan
+## 11. NEW IN v1.1.0
 
-**Betaflight Advanced Tuning Assist** adalah aplikasi comprehensive yang membuat drone tuning jadi:
-- ✅ **Mudah** — user-friendly, guided workflow
-- ✅ **Akurat** — data-driven recommendations
-- ✅ **Cepat** — real-time analysis dan CLI integration
+### Sequential Tuning Pipeline
+- 7-stage gate-locked tuning workflow: Noise → Filters → PIDs → Feedforward → TPA → Anti-Gravity → Verification
+- Each stage must pass before moving to the next
+- Visual progress indicators and percentage completion
+- Pre-flight checklist ensures readiness before flying
+
+### Rate Profiles Library
+- **50+ community rate presets** from well-known FPV pilots (Oscar Liang, Joshua Bardwell, Mr. Steele, Le Drib, JohnnyFPV, Skitzo, Nurk, etc.)
+- 5 quad types: Freestyle, Racing, Cinematic, Long Range, Whoop
+- 5 rate systems: Betaflight, Actual, KISS, QuickRates, Raceflight
+- Create, edit, and delete custom rate profiles
+- Visual rate curve rendering via Canvas 2D API
+- Rate comparison — select up to 3 rates for side-by-side comparison
+- Per-axis comparison tables with highest values highlighted
+- Copy-ready CLI commands for instant application
+- Filter by quad type, rate type; search by pilot name
+
+### Flying Style & Quad Condition Selectors
+- 6 flying style options: Smooth, Balanced, Responsive, Aggressive, Juicy, Send It
+- 4 quad condition options: Brand New, Good Condition, Worn Out, Battle Damaged
+- Selections influence tuning recommendations
+
+### Multi-Drone Profile System
+- Save multiple drone hardware profiles
+- Switch between profiles easily
+- Each profile stores independent analysis results
+
+### Log Comparison
+- Compare multiple blackbox log files
+- Track tuning improvements over time
+- Side-by-side metric comparison
+
+### Desktop App (Electron)
+- Windows (.exe installer + portable), macOS (.dmg), Linux (AppImage)
+- Same React app wrapped in Electron
+- WebSerial API enabled via Chromium flags
+- Offline-capable — no internet required
+- Double-click to launch — no terminal needed
+
+### CLI Import
+- Import existing Betaflight CLI dumps
+- Auto-parse and extract current settings
+- Use as baseline for tuning recommendations
+
+---
+
+## Conclusion
+
+**Betaflight Advanced Tuning Assist** is a comprehensive app that makes drone tuning:
+- ✅ **Easy** — user-friendly, guided workflow
+- ✅ **Accurate** — data-driven recommendations
+- ✅ **Fast** — real-time analysis and CLI integration
 - ✅ **Accessible** — multi-language, no expert knowledge needed
 - ✅ **Powerful** — 15 analysis tools, smart presets, offline-first
 
-Aplikasi ini adalah **must-have tool** untuk setiap pilot FPV yang serius tentang tuning drone mereka!
+This app is a **must-have tool** for every FPV pilot serious about tuning their drone!
 
 ---
 

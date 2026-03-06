@@ -99,7 +99,7 @@ export default function QuadConditionSelector({ value, onChange }) {
         <span className="text-[10px] text-gray-500">Affects noise & filter recommendations</span>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {CONDITIONS.map(cond => {
           const isSelected = value === cond.id;
           const c = COLORS[cond.color];
@@ -107,17 +107,15 @@ export default function QuadConditionSelector({ value, onChange }) {
             <button
               key={cond.id}
               onClick={() => onChange(cond.id)}
-              className={`text-left p-3 rounded-xl border transition-all ${
+              className={`text-left p-3 rounded-xl border transition-all flex flex-col items-center gap-2 min-h-[120px] overflow-hidden ${
                 isSelected
                   ? `${c.bg} ${c.border} ring-1 ${c.ring}`
                   : 'bg-gray-800/40 border-gray-700/50 hover:border-gray-600'
               }`}
             >
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-base">{cond.emoji}</span>
-                <span className={`text-xs font-semibold ${isSelected ? c.text : 'text-gray-300'}`}>{cond.label}</span>
-              </div>
-              <p className="text-[10px] text-gray-500 leading-relaxed">{cond.desc}</p>
+              <span className="text-2xl flex-shrink-0 leading-none">{cond.emoji}</span>
+              <span className={`text-xs font-bold text-center leading-tight line-clamp-2 ${isSelected ? c.text : 'text-gray-300'}`}>{cond.label}</span>
+              <p className="text-[10px] text-gray-500 leading-relaxed text-center line-clamp-3 break-words hyphens-auto">{cond.desc}</p>
             </button>
           );
         })}

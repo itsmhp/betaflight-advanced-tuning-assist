@@ -318,7 +318,7 @@ export default function Dashboard() {
                         <Icon size={12} className="flex-shrink-0 mt-0.5"/>
                         <div>
                           <span className="font-medium mr-1.5">[{rec.tool}]</span>
-                          <span className="text-gray-200">{rec.text}</span>
+                          <span className="text-gray-200">{typeof rec.text === 'string' ? rec.text : (rec.text?.message ?? rec.text?.text ?? JSON.stringify(rec.text))}</span>
                         </div>
                       </div>
                     );

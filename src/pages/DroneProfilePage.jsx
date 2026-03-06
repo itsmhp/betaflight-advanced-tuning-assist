@@ -1,12 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
 import {
   Cpu, ChevronDown, Save, RotateCcw, CheckCircle2, Zap, Settings,
-  Plus, Copy, Trash2, MoreVertical, Edit3, Star, X, ArrowLeft, Battery, Gauge
+  Plus, Copy, Trash2, MoreVertical, Edit3, Star, X, ArrowLeft, Battery, Gauge,
+  Terminal, Upload, FileText, Check
 } from 'lucide-react';
 import {
   useDroneProfile, createEmptyDrone,
   FRAME_SIZES, MOTOR_STATORS, PROP_SIZES, BATTERY_CELLS, FLYING_STYLES, ESC_PROTOCOLS
 } from '../context/DroneProfileContext';
+import { parseCLIDump } from '../lib/cliParser';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 function Field({ label, hint, children }) {
@@ -176,6 +178,115 @@ function DroneCard({ drone, isActive, onSetActive, onEdit, onDuplicate, onDelete
   );
 }
 
+// ─── CLI Snapshot Import ────────────────────────────────────────────────────
+function CLISnapshotSection({ drone, onUpdate }) {
+  const [cliText, setCliText] = useState('');
+  const [parsed, setParsed] = useState(null);
+  const [showRaw, setShowRaw] = useState(false);
+
+  const handleParse = () => {
+    if (!cliText.trim()) return;
+    try {
+      const result = parseCLIDump(cliText);
+      setParsed(result);
+    } catch {
+      alert('Failed to parse CLI dump. Make sure it\'s a valid Betaflight CLI dump.');
+    }
+  };
+
+  const handleApply = () => {
+    if (!parsed) return;
+    const updates = {
+      cliSnapshot: parsed,
+      cliSnapshotRaw: cliText,
+      cliSnapshotDate: new Date().toISOString(),
+    };
+    // Auto-fill drone fields from parsed data
+    if (parsed.craftName) updates.name = parsed.craftName;
+    if (parsed.boardName) updates['fc.model'] = parsed.boardName;
+    if (parsed.version) updates['fc.betaflight_version'] = parsed.version.replace(/^.*\s/, '');
+    // Extract motor protocol from features
+    if (parsed.features?.length) {
+      const dshot = parsed.features.find(f => /dshot/i.test(f));
+      if (dshot) updates['esc.protocol'] = dshot.toUpperCase();
+    }
+    onUpdate(updates);
+    setCliText('');
+    setParsed(null);
+  };
+
+  const hasSnapshot = !!drone.cliSnapshotDate;
+
+  return (
+    <div className="bg-gray-800/40 border border-gray-700 rounded-xl p-5 space-y-4">
+      <h2 className="text-sm font-semibold text-gray-300 flex items-center gap-2">
+        <Terminal size={14} className="text-green-400" /> CLI Dump Import
+      </h2>
+
+      {hasSnapshot && (
+        <div className="flex items-center gap-2 bg-green-900/20 border border-green-700/30 rounded-lg px-3 py-2 text-xs text-green-300">
+          <Check size={12} />
+          CLI snapshot saved {new Date(drone.cliSnapshotDate).toLocaleString()}
+          {drone.cliSnapshot?.boardName && ` · ${drone.cliSnapshot.boardName}`}
+          {drone.cliSnapshot?.version && ` · BF ${drone.cliSnapshot.version}`}
+        </div>
+      )}
+
+      <p className="text-xs text-gray-500">
+        Paste your Betaflight CLI <code className="text-violet-400">dump</code> or <code className="text-violet-400">diff all</code> output to auto-fill drone info and save a snapshot.
+      </p>
+
+      <textarea
+        value={cliText}
+        onChange={e => setCliText(e.target.value)}
+        placeholder="# paste CLI dump here...\n# version\n# Betaflight / STM32F405 ..."
+        rows={5}
+        className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-green-300 font-mono focus:outline-none focus:border-violet-500 resize-none"
+      />
+
+      <div className="flex gap-2 flex-wrap">
+        <button onClick={handleParse} disabled={!cliText.trim()}
+          className="flex items-center gap-1.5 text-xs font-medium px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+          <FileText size={12} /> Parse
+        </button>
+        {parsed && (
+          <button onClick={handleApply}
+            className="flex items-center gap-1.5 text-xs font-medium px-4 py-2 rounded-lg bg-violet-700 hover:bg-violet-600 text-white transition-colors">
+            <Upload size={12} /> Apply to Profile
+          </button>
+        )}
+      </div>
+
+      {/* Parsed preview */}
+      {parsed && (
+        <div className="bg-gray-900/50 border border-gray-700/50 rounded-lg p-3 space-y-2 text-xs">
+          <p className="text-gray-400 font-medium">Parsed Data Preview:</p>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-gray-300">
+            {parsed.boardName && <><span className="text-gray-500">Board:</span><span>{parsed.boardName}</span></>}
+            {parsed.craftName && <><span className="text-gray-500">Craft:</span><span>{parsed.craftName}</span></>}
+            {parsed.version && <><span className="text-gray-500">Version:</span><span>{parsed.version}</span></>}
+            {parsed.mcuId && <><span className="text-gray-500">MCU:</span><span className="truncate">{parsed.mcuId}</span></>}
+            {parsed.mixer && <><span className="text-gray-500">Mixer:</span><span>{parsed.mixer}</span></>}
+            <span className="text-gray-500">Profiles:</span><span>{parsed.profiles?.length ?? 0}</span>
+            <span className="text-gray-500">Rate Profiles:</span><span>{parsed.rateProfiles?.length ?? 0}</span>
+            {parsed.features?.length > 0 && <><span className="text-gray-500">Features:</span><span className="truncate">{parsed.features.join(', ')}</span></>}
+          </div>
+        </div>
+      )}
+
+      {/* Show saved raw dump */}
+      {hasSnapshot && drone.cliSnapshotRaw && (
+        <details className="text-xs">
+          <summary className="cursor-pointer text-gray-500 hover:text-gray-300">View saved CLI snapshot</summary>
+          <pre className="bg-gray-950 rounded-lg p-3 text-green-300/70 font-mono overflow-x-auto max-h-40 mt-2 select-all text-[10px]">
+            {drone.cliSnapshotRaw.slice(0, 3000)}{drone.cliSnapshotRaw.length > 3000 ? '\n...(truncated)' : ''}
+          </pre>
+        </details>
+      )}
+    </div>
+  );
+}
+
 // ─── Main Page ──────────────────────────────────────────────────────────────
 export default function DroneProfilePage() {
   const {
@@ -339,6 +450,11 @@ export default function DroneProfilePage() {
             className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100 focus:outline-none focus:border-violet-500 resize-none"
           />
         </div>
+
+        {/* ── CLI Dump Import ── */}
+        <CLISnapshotSection drone={editingDrone} onUpdate={(data) => {
+          Object.entries(data).forEach(([k, v]) => updateField(k, v));
+        }} />
 
         {/* ── Actions ── */}
         <div className="flex items-center justify-between gap-3 pt-2">

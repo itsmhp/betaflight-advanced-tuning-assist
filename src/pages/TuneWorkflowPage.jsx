@@ -17,6 +17,9 @@ import NoiseHeatmap from '../components/NoiseHeatmap';
 import StageTabView from '../components/StageTabView';
 import EvidenceChart from '../components/EvidenceChart';
 import CLICommandsPanel from '../components/CLICommandsPanel';
+import PreFlightChecklist from '../components/PreFlightChecklist';
+import FlyingStyleSelector from '../components/FlyingStyleSelector';
+import QuadConditionSelector from '../components/QuadConditionSelector';
 import {
   createInitialPipelineState,
   pipelineReducer,
@@ -1102,29 +1105,6 @@ function StageCard({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Progress Bar
-// ─────────────────────────────────────────────────────────────────────────────
-function PipelineProgressBar({ pipeline }) {
-  const total = pipeline.stages.length;
-  const completed = countCompleted(pipeline.stages);
-  const pct = Math.round((completed / total) * 100);
-
-  return (
-    <div className="flex items-center gap-3">
-      <div className="flex-1 bg-gray-800 rounded-full h-2 overflow-hidden">
-        <div
-          className={`h-full rounded-full transition-all duration-500 ${
-            pipeline.allCompleted ? 'bg-emerald-500' : 'bg-violet-500'
-          }`}
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-      <span className="text-xs text-gray-400 flex-shrink-0 tabular-nums">{completed}/{total}</span>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
 // Main Page
 // ─────────────────────────────────────────────────────────────────────────────
 export default function TuneWorkflowPage() {
@@ -1155,6 +1135,16 @@ export default function TuneWorkflowPage() {
   const [showNewDataBanner, setShowNewDataBanner] = useState(false);
   const [dataFingerprint, setDataFingerprint] = useState(null);
   const [showUploadPanel, setShowUploadPanel] = useState(true);
+
+  // V6: Flying style + quad condition selectors (persisted)
+  const [flyingStyle, setFlyingStyle] = useState(() => {
+    try { return localStorage.getItem('tuneFlightStyle') || 'flow'; } catch { return 'flow'; }
+  });
+  const [quadCondition, setQuadCondition] = useState(() => {
+    try { return localStorage.getItem('tuneQuadCondition') || 'good'; } catch { return 'good'; }
+  });
+  useEffect(() => { try { localStorage.setItem('tuneFlightStyle', flyingStyle); } catch {} }, [flyingStyle]);
+  useEffect(() => { try { localStorage.setItem('tuneQuadCondition', quadCondition); } catch {} }, [quadCondition]);
 
   // Track data changes for re-upload detection
   useEffect(() => {
@@ -1252,7 +1242,6 @@ export default function TuneWorkflowPage() {
       </div>
 
       {/* ── Progress ── */}
-      <PipelineProgressBar pipeline={pipeline} />
       <PipelineProgressChips stages={pipeline.stages} />
 
       {/* ── Inline Upload Panel ── */}
@@ -1270,6 +1259,19 @@ export default function TuneWorkflowPage() {
           </button>
         </div>
         {showUploadPanel && <FileUpload compact />}
+      </div>
+
+      {/* ── Pre-Flight Checklist (collapsible) ── */}
+      <PreFlightChecklist />
+
+      {/* ── Flying Style + Quad Condition ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="bg-gray-800/40 border border-gray-700/50 rounded-xl p-4">
+          <FlyingStyleSelector value={flyingStyle} onChange={setFlyingStyle} />
+        </div>
+        <div className="bg-gray-800/40 border border-gray-700/50 rounded-xl p-4">
+          <QuadConditionSelector value={quadCondition} onChange={setQuadCondition} />
+        </div>
       </div>
 
       {/* ── Data Status Banners ── */}

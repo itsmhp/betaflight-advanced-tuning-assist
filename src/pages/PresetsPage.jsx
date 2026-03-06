@@ -76,7 +76,6 @@ function PresetCard({ preset }) {
   const settingCount = Object.keys({
     ...(preset.profileSettings ?? {}),
     ...(preset.masterSettings  ?? {}),
-    ...(preset.rateSettings    ?? {}),
   }).length;
 
   return (
@@ -160,7 +159,6 @@ function PresetCard({ preset }) {
             <div className="space-y-3">
               <SettingsGrid title="Profile / PID Settings" settings={preset.profileSettings} color="violet" />
               <SettingsGrid title="Master / Gyro Settings" settings={preset.masterSettings}  color="blue"   />
-              <SettingsGrid title="Rate Profile"            settings={preset.rateSettings}    color="cyan"   />
               <div>
                 <p className="text-xs text-gray-400 mb-1">CLI Preview</p>
                 <pre className="bg-gray-950 rounded-lg p-3 text-xs text-green-300 font-mono overflow-x-auto max-h-52 select-all">
@@ -315,9 +313,14 @@ export default function PresetsPage() {
       <FrameSizePanel sizeKey={activeSize} analysisResults={analysisResults} />
 
       {/* ── Footer ── */}
-      <div className="border-t border-gray-800 pt-4 text-xs text-gray-500">
-        {SIZE_KEYS.length} frame classes · {SIZE_KEYS.length * 4} total presets ·
-        Values suit Betaflight 4.3+. RPM filter will change optimal D-term range.
+      <div className="border-t border-gray-800 pt-4 text-xs text-gray-500 space-y-2">
+        <p>
+          {SIZE_KEYS.length} frame classes · {SIZE_KEYS.length * 4} total presets ·
+          Values suit Betaflight 4.3+. RPM filter will change optimal D-term range.
+        </p>
+        <p>
+          Looking for rate profiles? Visit the <a href="#/rates" className="text-violet-400 hover:underline">Rate Profiles</a> page for community & custom rates.
+        </p>
       </div>
     </div>
   );

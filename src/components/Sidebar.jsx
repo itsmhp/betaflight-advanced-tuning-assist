@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Waypoints, HeartPulse, BookMarked, Cpu, Terminal, BarChart3,
-  Globe, ChevronDown, Plus
+  Globe, ChevronDown, Plus, Award
 } from 'lucide-react';
 import { useLang } from '../i18n/LangContext';
 import { LANGUAGES } from '../i18n/translations';
@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { path: '/tune',     labelKey: 'tune_quad',       icon: Waypoints,  color: 'text-violet-400' },
   { path: '/',         labelKey: 'adv_pid_health',  icon: HeartPulse, color: 'text-violet-300', end: true },
   { path: '/presets',  labelKey: 'presets',         icon: BookMarked, color: 'text-cyan-400' },
+  { path: '/rates',    labelKey: 'rate_profiles',   icon: Award,      color: 'text-cyan-300' },
   { path: '/compare-logs', labelKey: 'compare_logs', icon: BarChart3, color: 'text-blue-400' },
   { path: '/my-drone', labelKey: 'my_drone',        icon: Cpu,        color: 'text-cyan-300' },
   { path: '/serial',   labelKey: 'serial_cli',      icon: Terminal,   color: 'text-green-400' },

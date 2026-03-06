@@ -22,6 +22,7 @@ import DroneProfilePage from './pages/DroneProfilePage';
 import SerialCLIPage from './pages/SerialCLIPage';
 import TuneWorkflowPage from './pages/TuneWorkflowPage';
 import LogComparisonPage from './pages/LogComparisonPage';
+import RatesPage from './pages/RatesPage';
 
 function App() {
   return (
@@ -47,6 +48,7 @@ function App() {
             <Route path="/stick-analyzer" element={<StickAnalyzerPage />} />
             <Route path="/dynamic-idle" element={<DynamicIdlePage />} />
             <Route path="/presets" element={<PresetsPage />} />
+            <Route path="/rates" element={<RatesPage />} />
             <Route path="/my-drone" element={<DroneProfilePage />} />
             <Route path="/serial" element={<SerialCLIPage />} />
             <Route path="/tune" element={<TuneWorkflowPage />} />

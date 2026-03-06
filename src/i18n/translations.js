@@ -193,6 +193,63 @@ const t = {
     stage_cliCommands: 'CLI Commands',
     stage_noChartData: 'No chart data available for this stage',
     stage_uploadForCharts: 'Upload a blackbox log to see charts',
+
+    // V6 Features — Rate Profiles
+    rate_profiles: 'Rate Profiles',
+    rate_community: 'Community Rates',
+    rate_custom: 'My Rates',
+    rate_newProfile: 'New Rate Profile',
+    rate_editProfile: 'Edit Rate Profile',
+    rate_copyCli: 'Copy CLI',
+    rate_peakRate: 'Peak Rate',
+    rate_curvePreview: 'Curve Preview',
+    rate_rateSystem: 'Rate System',
+    rate_quadType: 'Quad Type',
+    rate_linkRollPitch: 'Roll+Pitch linked',
+    rate_independent: 'Independent',
+    rate_rateValues: 'Rate Values',
+    rate_throttleMid: 'Throttle Mid',
+    rate_throttleExpo: 'Throttle Expo',
+    rate_noCustom: 'No custom rates yet.',
+    rate_createFirst: 'Create your first rate profile',
+    rate_separateNote: 'Rates are separate from PID presets.',
+
+    // V6 Features — Pre-Flight Checklist
+    preflight_title: 'Pre-Tune Checklist',
+    preflight_subtitle: 'Complete these before flying for best analysis results.',
+    preflight_blackbox: 'Blackbox Setup',
+    preflight_flight: 'Flight Conditions',
+    preflight_settings: 'Betaflight Settings',
+    preflight_hardware: 'Hardware Check',
+    preflight_allComplete: 'All checks complete — ready to tune!',
+    preflight_reset: 'Reset checklist',
+
+    // V6 Features — Flying Style Selector
+    style_title: 'Flying Style',
+    style_subtitle: 'Adjusts PID recommendations to match your feel',
+    style_locked: 'Locked In',
+    style_flow: 'Flow',
+    style_juicy: 'Juicy',
+    style_hangtime: 'Hangtime',
+    style_race: 'Race',
+    style_cinematic: 'Cinematic',
+
+    // V6 Features — Quad Condition Selector
+    condition_title: 'Quad Condition',
+    condition_subtitle: 'Affects noise & filter recommendations',
+    condition_new: 'Brand New',
+    condition_good: 'Good Condition',
+    condition_worn: 'Worn / Used',
+    condition_damaged: 'Battle Damaged',
+
+    // V6 Features — CLI Dump Import
+    cli_import_title: 'CLI Dump Import',
+    cli_import_hint: 'Paste your Betaflight CLI dump or diff all output to auto-fill drone info.',
+    cli_import_parse: 'Parse',
+    cli_import_apply: 'Apply to Profile',
+    cli_import_saved: 'CLI snapshot saved',
+    cli_import_parsedPreview: 'Parsed Data Preview',
+    cli_import_viewSnapshot: 'View saved CLI snapshot',
   },
 
   id: {
@@ -380,7 +437,65 @@ const t = {
     stage_charts: 'Grafik',
     stage_cliCommands: 'Perintah CLI',
     stage_noChartData: 'Tidak ada data grafik untuk stage ini',
-    stage_uploadForCharts: 'Upload log blackbox untuk melihat grafik',  },
+    stage_uploadForCharts: 'Upload log blackbox untuk melihat grafik',
+
+    // V6 Features — Rate Profiles
+    rate_profiles: 'Profil Rate',
+    rate_community: 'Rate Komunitas',
+    rate_custom: 'Rate Saya',
+    rate_newProfile: 'Profil Rate Baru',
+    rate_editProfile: 'Edit Profil Rate',
+    rate_copyCli: 'Salin CLI',
+    rate_peakRate: 'Rate Maksimum',
+    rate_curvePreview: 'Preview Kurva',
+    rate_rateSystem: 'Sistem Rate',
+    rate_quadType: 'Tipe Quad',
+    rate_linkRollPitch: 'Roll+Pitch terkait',
+    rate_independent: 'Independen',
+    rate_rateValues: 'Nilai Rate',
+    rate_throttleMid: 'Throttle Mid',
+    rate_throttleExpo: 'Throttle Expo',
+    rate_noCustom: 'Belum ada rate kustom.',
+    rate_createFirst: 'Buat profil rate pertama Anda',
+    rate_separateNote: 'Rate terpisah dari preset PID.',
+
+    // V6 Features — Pre-Flight Checklist
+    preflight_title: 'Checklist Pra-Tuning',
+    preflight_subtitle: 'Selesaikan ini sebelum terbang untuk hasil analisis terbaik.',
+    preflight_blackbox: 'Setup Blackbox',
+    preflight_flight: 'Kondisi Penerbangan',
+    preflight_settings: 'Pengaturan Betaflight',
+    preflight_hardware: 'Cek Hardware',
+    preflight_allComplete: 'Semua cek selesai — siap tuning!',
+    preflight_reset: 'Reset checklist',
+
+    // V6 Features — Flying Style Selector
+    style_title: 'Gaya Terbang',
+    style_subtitle: 'Menyesuaikan rekomendasi PID sesuai rasa Anda',
+    style_locked: 'Terkunci',
+    style_flow: 'Flow',
+    style_juicy: 'Juicy',
+    style_hangtime: 'Hangtime',
+    style_race: 'Balap',
+    style_cinematic: 'Sinematik',
+
+    // V6 Features — Quad Condition Selector
+    condition_title: 'Kondisi Quad',
+    condition_subtitle: 'Mempengaruhi rekomendasi noise & filter',
+    condition_new: 'Baru',
+    condition_good: 'Kondisi Baik',
+    condition_worn: 'Aus / Bekas',
+    condition_damaged: 'Rusak Parah',
+
+    // V6 Features — CLI Dump Import
+    cli_import_title: 'Import CLI Dump',
+    cli_import_hint: 'Tempel output CLI dump atau diff all Betaflight Anda untuk mengisi info drone otomatis.',
+    cli_import_parse: 'Parse',
+    cli_import_apply: 'Terapkan ke Profil',
+    cli_import_saved: 'Snapshot CLI tersimpan',
+    cli_import_parsedPreview: 'Preview Data Parsed',
+    cli_import_viewSnapshot: 'Lihat snapshot CLI tersimpan',
+  },
 
   es: {
     // App
@@ -569,6 +684,63 @@ const t = {
     stage_cliCommands: 'Comandos CLI',
     stage_noChartData: 'No hay datos de gráfico para esta etapa',
     stage_uploadForCharts: 'Sube un log de blackbox para ver gráficos',
+
+    // V6 Features — Rate Profiles
+    rate_profiles: 'Perfiles de Rate',
+    rate_community: 'Rates de Comunidad',
+    rate_custom: 'Mis Rates',
+    rate_newProfile: 'Nuevo Perfil de Rate',
+    rate_editProfile: 'Editar Perfil de Rate',
+    rate_copyCli: 'Copiar CLI',
+    rate_peakRate: 'Rate Máximo',
+    rate_curvePreview: 'Vista Previa de Curva',
+    rate_rateSystem: 'Sistema de Rate',
+    rate_quadType: 'Tipo de Quad',
+    rate_linkRollPitch: 'Roll+Pitch enlazados',
+    rate_independent: 'Independiente',
+    rate_rateValues: 'Valores de Rate',
+    rate_throttleMid: 'Throttle Mid',
+    rate_throttleExpo: 'Throttle Expo',
+    rate_noCustom: 'Sin rates personalizados aún.',
+    rate_createFirst: 'Crea tu primer perfil de rate',
+    rate_separateNote: 'Los rates están separados de presets PID.',
+
+    // V6 Features — Pre-Flight Checklist
+    preflight_title: 'Lista Pre-Tuning',
+    preflight_subtitle: 'Completa esto antes de volar para mejores resultados.',
+    preflight_blackbox: 'Configuración Blackbox',
+    preflight_flight: 'Condiciones de Vuelo',
+    preflight_settings: 'Configuración Betaflight',
+    preflight_hardware: 'Verificación de Hardware',
+    preflight_allComplete: '¡Todas las comprobaciones completas — listo para tuning!',
+    preflight_reset: 'Reiniciar lista',
+
+    // V6 Features — Flying Style Selector
+    style_title: 'Estilo de Vuelo',
+    style_subtitle: 'Ajusta recomendaciones PID según tu estilo',
+    style_locked: 'Preciso',
+    style_flow: 'Flow',
+    style_juicy: 'Juicy',
+    style_hangtime: 'Hangtime',
+    style_race: 'Carrera',
+    style_cinematic: 'Cinemático',
+
+    // V6 Features — Quad Condition Selector
+    condition_title: 'Condición del Quad',
+    condition_subtitle: 'Afecta recomendaciones de ruido y filtros',
+    condition_new: 'Nuevo',
+    condition_good: 'Buena Condición',
+    condition_worn: 'Desgastado',
+    condition_damaged: 'Dañado en Batalla',
+
+    // V6 Features — CLI Dump Import
+    cli_import_title: 'Importar CLI Dump',
+    cli_import_hint: 'Pega tu dump CLI o diff all de Betaflight para autocompletar info del drone.',
+    cli_import_parse: 'Parsear',
+    cli_import_apply: 'Aplicar al Perfil',
+    cli_import_saved: 'Snapshot CLI guardado',
+    cli_import_parsedPreview: 'Vista Previa de Datos Parseados',
+    cli_import_viewSnapshot: 'Ver snapshot CLI guardado',
   },
 
   de: {
@@ -758,6 +930,63 @@ const t = {
     stage_cliCommands: 'CLI-Befehle',
     stage_noChartData: 'Keine Diagrammdaten für diese Phase verfügbar',
     stage_uploadForCharts: 'Blackbox-Log hochladen um Diagramme zu sehen',
+
+    // V6 Features — Rate Profiles
+    rate_profiles: 'Rate-Profile',
+    rate_community: 'Community Rates',
+    rate_custom: 'Meine Rates',
+    rate_newProfile: 'Neues Rate-Profil',
+    rate_editProfile: 'Rate-Profil bearbeiten',
+    rate_copyCli: 'CLI kopieren',
+    rate_peakRate: 'Spitzenrate',
+    rate_curvePreview: 'Kurvenvorschau',
+    rate_rateSystem: 'Rate-System',
+    rate_quadType: 'Quad-Typ',
+    rate_linkRollPitch: 'Roll+Pitch verknüpft',
+    rate_independent: 'Unabhängig',
+    rate_rateValues: 'Rate-Werte',
+    rate_throttleMid: 'Throttle Mitte',
+    rate_throttleExpo: 'Throttle Expo',
+    rate_noCustom: 'Noch keine benutzerdefinierten Rates.',
+    rate_createFirst: 'Erstelle dein erstes Rate-Profil',
+    rate_separateNote: 'Rates sind getrennt von PID-Vorlagen.',
+
+    // V6 Features — Pre-Flight Checklist
+    preflight_title: 'Vor-Tuning-Checkliste',
+    preflight_subtitle: 'Erledige dies vor dem Flug für beste Analyseergebnisse.',
+    preflight_blackbox: 'Blackbox-Setup',
+    preflight_flight: 'Flugbedingungen',
+    preflight_settings: 'Betaflight-Einstellungen',
+    preflight_hardware: 'Hardware-Prüfung',
+    preflight_allComplete: 'Alle Prüfungen abgeschlossen — bereit zum Tuning!',
+    preflight_reset: 'Checkliste zurücksetzen',
+
+    // V6 Features — Flying Style Selector
+    style_title: 'Flugstil',
+    style_subtitle: 'Passt PID-Empfehlungen an deinen Stil an',
+    style_locked: 'Präzise',
+    style_flow: 'Flow',
+    style_juicy: 'Juicy',
+    style_hangtime: 'Hangtime',
+    style_race: 'Rennen',
+    style_cinematic: 'Cinematic',
+
+    // V6 Features — Quad Condition Selector
+    condition_title: 'Quad-Zustand',
+    condition_subtitle: 'Beeinflusst Geräusch- & Filterempfehlungen',
+    condition_new: 'Nagelneu',
+    condition_good: 'Guter Zustand',
+    condition_worn: 'Abgenutzt',
+    condition_damaged: 'Kampfbeschädigt',
+
+    // V6 Features — CLI Dump Import
+    cli_import_title: 'CLI-Dump importieren',
+    cli_import_hint: 'Füge deinen Betaflight CLI-Dump oder diff all ein, um Drohnen-Info automatisch auszufüllen.',
+    cli_import_parse: 'Parsen',
+    cli_import_apply: 'Auf Profil anwenden',
+    cli_import_saved: 'CLI-Snapshot gespeichert',
+    cli_import_parsedPreview: 'Vorschau geparster Daten',
+    cli_import_viewSnapshot: 'Gespeicherten CLI-Snapshot anzeigen',
   },
 };
 

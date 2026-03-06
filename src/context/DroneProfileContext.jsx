@@ -112,6 +112,9 @@ export const createEmptyDrone = (name = 'My Drone') => ({
   estimated_flight_time: '',
   flying_style: 'freestyle',
   notes: '',
+  cliSnapshot: null,
+  cliSnapshotRaw: '',
+  cliSnapshotDate: null,
 });
 
 const PROFILES_KEY = 'droneProfiles_v2';

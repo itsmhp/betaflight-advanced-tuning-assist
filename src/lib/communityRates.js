@@ -1,0 +1,270 @@
+/**
+ * communityRates.js — Built-in community rate profiles from well-known FPV pilots.
+ * These are hardcoded and NOT saved to localStorage.
+ */
+
+export const RATE_TYPES = [
+  { id: 'betaflight', label: 'Betaflight',  params: ['rc_rate', 'rate', 'rc_expo'] },
+  { id: 'raceflight', label: 'Raceflight',  params: ['rc_rate', 'rate', 'rc_expo'] },
+  { id: 'kiss',       label: 'KISS',        params: ['rc_rate', 'rate', 'rc_expo'] },
+  { id: 'actual',     label: 'Actual',      params: ['center_sensitivity', 'max_rate', 'expo'] },
+  { id: 'quick',      label: 'QuickRates',  params: ['rc_rate', 'rate', 'rc_expo'] },
+];
+
+export const QUAD_TYPES = [
+  { value: 'freestyle', label: 'Freestyle' },
+  { value: 'racing',    label: 'Racing' },
+  { value: 'cinematic', label: 'Cinematic' },
+  { value: 'longrange', label: 'Long Range' },
+];
+
+export const COMMUNITY_RATES = [
+  {
+    id: 'jbardwell-flow',
+    name: 'Flow Rates',
+    pilotName: 'Joshua Bardwell',
+    quadName: 'General Freestyle',
+    quadType: 'freestyle',
+    rateType: 'betaflight',
+    source: 'community',
+    tags: ['flow', 'smooth', 'beginner-friendly'],
+    notes: 'Smooth and predictable. Great for learning freestyle.',
+    roll:  { rc_rate: 1.0, rate: 0.7, expo: 0.15 },
+    pitch: { rc_rate: 1.0, rate: 0.7, expo: 0.15 },
+    yaw:   { rc_rate: 1.0, rate: 0.5, expo: 0.0 },
+    thr_mid: 0.5,
+    thr_expo: 0.0,
+    createdAt: '2024-01-01T00:00:00.000Z',
+  },
+  {
+    id: 'mrsteele-juicy',
+    name: 'Juicy Rates',
+    pilotName: 'Mr. Steele',
+    quadName: '5" Freestyle',
+    quadType: 'freestyle',
+    rateType: 'betaflight',
+    source: 'community',
+    tags: ['juicy', 'freestyle', 'advanced'],
+    notes: 'High rate, very responsive. Best for experienced pilots.',
+    roll:  { rc_rate: 1.2, rate: 0.73, expo: 0.0 },
+    pitch: { rc_rate: 1.2, rate: 0.73, expo: 0.0 },
+    yaw:   { rc_rate: 1.0, rate: 0.5, expo: 0.0 },
+    thr_mid: 0.5,
+    thr_expo: 0.0,
+    createdAt: '2024-01-01T00:00:00.000Z',
+  },
+  {
+    id: 'quadmovr-race',
+    name: 'Race Rates',
+    pilotName: 'QuadMovr',
+    quadName: 'Race Quad 5"',
+    quadType: 'racing',
+    rateType: 'actual',
+    source: 'community',
+    tags: ['racing', 'precise', 'high-rate'],
+    notes: 'High center sensitivity, great for precise gate clipping.',
+    roll:  { center_sensitivity: 230, max_rate: 760, expo: 0.0 },
+    pitch: { center_sensitivity: 230, max_rate: 760, expo: 0.0 },
+    yaw:   { center_sensitivity: 160, max_rate: 500, expo: 0.0 },
+    thr_mid: 0.5,
+    thr_expo: 0.0,
+    createdAt: '2024-01-01T00:00:00.000Z',
+  },
+  {
+    id: 'rotorriot-freestyle',
+    name: 'Rotor Riot Freestyle',
+    pilotName: 'Rotor Riot',
+    quadName: 'Freestyle 5"',
+    quadType: 'freestyle',
+    rateType: 'betaflight',
+    source: 'community',
+    tags: ['freestyle', 'versatile', 'medium-rate'],
+    notes: 'Well-rounded freestyle rates. Good balance of control and agility.',
+    roll:  { rc_rate: 1.1, rate: 0.7, expo: 0.1 },
+    pitch: { rc_rate: 1.1, rate: 0.7, expo: 0.1 },
+    yaw:   { rc_rate: 1.0, rate: 0.5, expo: 0.05 },
+    thr_mid: 0.5,
+    thr_expo: 0.0,
+    createdAt: '2024-01-01T00:00:00.000Z',
+  },
+  {
+    id: 'ledrib-cinematic',
+    name: 'Cinematic Smooth',
+    pilotName: 'Le Drib',
+    quadName: 'Cine Freestyle',
+    quadType: 'cinematic',
+    rateType: 'betaflight',
+    source: 'community',
+    tags: ['cinematic', 'smooth', 'filming'],
+    notes: 'Super smooth rates for cinematic flying. Low rates, high expo for precision.',
+    roll:  { rc_rate: 0.8, rate: 0.65, expo: 0.3 },
+    pitch: { rc_rate: 0.8, rate: 0.65, expo: 0.3 },
+    yaw:   { rc_rate: 0.7, rate: 0.45, expo: 0.1 },
+    thr_mid: 0.5,
+    thr_expo: 0.0,
+    createdAt: '2024-01-01T00:00:00.000Z',
+  },
+  {
+    id: 'shaggyfpv-flow',
+    name: 'Shaggy Flow',
+    pilotName: 'Shaggy FPV',
+    quadName: '5" Flow Machine',
+    quadType: 'freestyle',
+    rateType: 'betaflight',
+    source: 'community',
+    tags: ['flow', 'medium-rate', 'freestyle'],
+    notes: 'Smooth flowing freestyle rates. Great for flowing gaps and matty flips.',
+    roll:  { rc_rate: 1.05, rate: 0.68, expo: 0.08 },
+    pitch: { rc_rate: 1.05, rate: 0.68, expo: 0.08 },
+    yaw:   { rc_rate: 1.0, rate: 0.5, expo: 0.0 },
+    thr_mid: 0.5,
+    thr_expo: 0.0,
+    createdAt: '2024-01-01T00:00:00.000Z',
+  },
+  {
+    id: 'johnnyfpv-cine',
+    name: 'JohnnyFPV Cine',
+    pilotName: 'JohnnyFPV',
+    quadName: 'Cine Rig',
+    quadType: 'cinematic',
+    rateType: 'actual',
+    source: 'community',
+    tags: ['cinematic', 'smooth', 'pro'],
+    notes: 'Professional cinematic rates. Extremely smooth transitions for filming.',
+    roll:  { center_sensitivity: 140, max_rate: 500, expo: 0.15 },
+    pitch: { center_sensitivity: 140, max_rate: 500, expo: 0.15 },
+    yaw:   { center_sensitivity: 100, max_rate: 350, expo: 0.0 },
+    thr_mid: 0.5,
+    thr_expo: 0.0,
+    createdAt: '2024-01-01T00:00:00.000Z',
+  },
+  {
+    id: 'vanover-race',
+    name: 'Race Champion',
+    pilotName: 'Alex Vanover',
+    quadName: 'DRL Race Quad',
+    quadType: 'racing',
+    rateType: 'betaflight',
+    source: 'community',
+    tags: ['racing', 'DRL', 'champion'],
+    notes: 'High authority rates for competitive racing. Quick corrections.',
+    roll:  { rc_rate: 1.4, rate: 0.7, expo: 0.0 },
+    pitch: { rc_rate: 1.4, rate: 0.7, expo: 0.0 },
+    yaw:   { rc_rate: 1.2, rate: 0.5, expo: 0.0 },
+    thr_mid: 0.5,
+    thr_expo: 0.0,
+    createdAt: '2024-01-01T00:00:00.000Z',
+  },
+  {
+    id: 'steele-flow',
+    name: 'Flow Mode',
+    pilotName: 'Mr. Steele',
+    quadName: '5" Flow',
+    quadType: 'freestyle',
+    rateType: 'actual',
+    source: 'community',
+    tags: ['flow', 'actual', 'freestyle'],
+    notes: 'Steele\'s Actual rate setup for flowing freestyle.',
+    roll:  { center_sensitivity: 200, max_rate: 670, expo: 0.0 },
+    pitch: { center_sensitivity: 200, max_rate: 670, expo: 0.0 },
+    yaw:   { center_sensitivity: 150, max_rate: 400, expo: 0.0 },
+    thr_mid: 0.5,
+    thr_expo: 0.0,
+    createdAt: '2024-01-01T00:00:00.000Z',
+  },
+  {
+    id: 'beginner-safe',
+    name: 'Beginner Safe',
+    pilotName: 'Community',
+    quadName: 'Any Quad',
+    quadType: 'freestyle',
+    rateType: 'betaflight',
+    source: 'community',
+    tags: ['beginner', 'safe', 'learning'],
+    notes: 'Low rates for beginners. Very forgiving, limited max rotation speed.',
+    roll:  { rc_rate: 0.7, rate: 0.6, expo: 0.2 },
+    pitch: { rc_rate: 0.7, rate: 0.6, expo: 0.2 },
+    yaw:   { rc_rate: 0.7, rate: 0.4, expo: 0.0 },
+    thr_mid: 0.5,
+    thr_expo: 0.0,
+    createdAt: '2024-01-01T00:00:00.000Z',
+  },
+  {
+    id: 'longrange-smooth',
+    name: 'Long Range Smooth',
+    pilotName: 'Community',
+    quadName: '7" Long Range',
+    quadType: 'longrange',
+    rateType: 'actual',
+    source: 'community',
+    tags: ['longrange', 'smooth', 'precision'],
+    notes: 'Low rates ideal for long range cruising. Very stable center stick feel.',
+    roll:  { center_sensitivity: 120, max_rate: 400, expo: 0.1 },
+    pitch: { center_sensitivity: 120, max_rate: 400, expo: 0.1 },
+    yaw:   { center_sensitivity: 80, max_rate: 250, expo: 0.0 },
+    thr_mid: 0.5,
+    thr_expo: 0.0,
+    createdAt: '2024-01-01T00:00:00.000Z',
+  },
+  {
+    id: 'kiss-race-classic',
+    name: 'KISS Race Classic',
+    pilotName: 'Community',
+    quadName: 'Race Quad',
+    quadType: 'racing',
+    rateType: 'kiss',
+    source: 'community',
+    tags: ['KISS', 'racing', 'classic'],
+    notes: 'Classic KISS rate curve for racing. Sharp center, controlled endpoints.',
+    roll:  { rc_rate: 0.7, rate: 0.8, expo: 0.15 },
+    pitch: { rc_rate: 0.7, rate: 0.8, expo: 0.15 },
+    yaw:   { rc_rate: 0.6, rate: 0.5, expo: 0.0 },
+    thr_mid: 0.5,
+    thr_expo: 0.0,
+    createdAt: '2024-01-01T00:00:00.000Z',
+  },
+];
+
+/** Template for creating a new custom rate profile */
+export function createEmptyRateProfile() {
+  return {
+    id: crypto.randomUUID(),
+    name: '',
+    pilotName: '',
+    quadName: '',
+    quadType: 'freestyle',
+    rateType: 'betaflight',
+    tags: [],
+    notes: '',
+    source: 'custom',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    roll:  { rc_rate: 1.0, rate: 0.7, expo: 0.0 },
+    pitch: { rc_rate: 1.0, rate: 0.7, expo: 0.0 },
+    yaw:   { rc_rate: 1.0, rate: 0.5, expo: 0.0 },
+    thr_mid: 0.5,
+    thr_expo: 0.0,
+  };
+}
+
+const STORAGE_KEY = 'rateProfiles';
+
+/** Load custom rate profiles from localStorage */
+export function loadCustomRates() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+/** Save custom rate profiles to localStorage */
+export function saveCustomRates(rates) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(rates));
+  } catch {
+    // ignore
+  }
+}

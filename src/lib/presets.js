@@ -1,24 +1,24 @@
-/**
- * presets.js — Comprehensive Betaflight tuning presets for all quad sizes.
+﻿/**
+ * presets.js â€” Comprehensive Betaflight tuning presets for all quad sizes.
  *
- * Coverage: 65mm · 75mm · 3" toothpick · 3" cinewhoop · 4" · 5" freestyle ·
- *           5" race · 6" LR · 7" LR
- * Each size: 4 levels — low | medium | high | ultra
+ * Coverage: 65mm Â· 75mm Â· 3" toothpick Â· 3" cinewhoop Â· 4" Â· 5" freestyle Â·
+ *           5" race Â· 6" LR Â· 7" LR
+ * Each size: 4 levels â€” low | medium | high | ultra
  *
  * Based on community tuning knowledge + iFlyQuad betaflight-advanced-tuning
  */
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // CLI Generator
-// ─────────────────────────────────────────────────────────────────────────────
-export function renderPresetCLI(preset, profileNum = 0, rateProfileNum = 0) {
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+export function renderPresetCLI(preset, profileNum = 0) {
   const lines = [
-    `# ═══════════════════════════════════════════`,
-    `# ${preset.frameSizeLabel} — ${preset.levelLabel}`,
+    `# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•`,
+    `# ${preset.frameSizeLabel} â€” ${preset.levelLabel}`,
     `# ${preset.subtitle}`,
-    `# Betaflight Tuning Assist · BF 4.3+`,
+    `# Betaflight Tuning Assist Â· BF 4.3+`,
     `# ${new Date().toISOString().slice(0, 10)}`,
-    `# ═══════════════════════════════════════════`,
+    `# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•`,
     `# Review before applying. Test at low throttle first.`,
     '',
     'batch start',
@@ -27,7 +27,6 @@ export function renderPresetCLI(preset, profileNum = 0, rateProfileNum = 0) {
 
   const profile = preset.profileSettings ?? {};
   const master  = preset.masterSettings  ?? {};
-  const rates   = preset.rateSettings    ?? {};
 
   if (Object.keys(profile).length) {
     lines.push(`profile ${profileNum}`, '');
@@ -39,19 +38,14 @@ export function renderPresetCLI(preset, profileNum = 0, rateProfileNum = 0) {
     for (const [k, v] of Object.entries(master)) lines.push(`set ${k} = ${v}`);
     lines.push('');
   }
-  if (Object.keys(rates).length) {
-    lines.push(`rateprofile ${rateProfileNum}`, '');
-    for (const [k, v] of Object.entries(rates)) lines.push(`set ${k} = ${v}`);
-    lines.push('');
-  }
 
   lines.push('batch end', '', 'save');
   return lines.join('\n');
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Metadata
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const LEVEL_META = {
   low:    { label: 'Low \u2014 Smooth',      badge: 'Smooth',     badgeColor: 'bg-blue-900/40 text-blue-300',    icon: '\uD83C\uDFAC' },
   medium: { label: 'Medium \u2014 Balanced', badge: 'Balanced',   badgeColor: 'bg-violet-900/40 text-violet-300', icon: '\u2696\uFE0F' },
@@ -71,14 +65,14 @@ export const FRAME_SIZE_META = {
   '7inch':           { label: '7" Long Range',         tags: ['LR', '6S', 'Long Cruise'],              accentColor: 'from-yellow-600 to-amber-600' },
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Preset Data
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const DB = {
 
   '65mm': {
     low: {
-      subtitle: 'Gentle indoor whoop — smooth, cool motors',
+      subtitle: 'Gentle indoor whoop â€” smooth, cool motors',
       profileSettings: {
         p_roll:45,i_roll:100,d_roll:42,f_roll:0,d_min_roll:30,
         p_pitch:48,i_pitch:105,d_pitch:46,f_pitch:0,d_min_pitch:34,
@@ -89,10 +83,9 @@ const DB = {
         iterm_relax_cutoff:8,
       },
       masterSettings:{gyro_lpf1_static_hz:0,gyro_lpf2_static_hz:180,dyn_notch_count:3,dyn_notch_q:280,dyn_notch_min_hz:50,dyn_notch_max_hz:350},
-      rateSettings:{roll_rc_rate:7,roll_expo:38,roll_srate:32,pitch_rc_rate:7,pitch_expo:38,pitch_srate:32,yaw_rc_rate:6,yaw_expo:28,yaw_srate:28},
     },
     medium: {
-      subtitle: 'Standard whoop — mixed indoor/outdoor',
+      subtitle: 'Standard whoop â€” mixed indoor/outdoor',
       profileSettings: {
         p_roll:65,i_roll:115,d_roll:50,f_roll:0,d_min_roll:38,
         p_pitch:68,i_pitch:120,d_pitch:55,f_pitch:0,d_min_pitch:42,
@@ -103,7 +96,6 @@ const DB = {
         iterm_relax_cutoff:10,
       },
       masterSettings:{gyro_lpf1_static_hz:0,gyro_lpf2_static_hz:240,dyn_notch_count:3,dyn_notch_q:300,dyn_notch_min_hz:60,dyn_notch_max_hz:400},
-      rateSettings:{roll_rc_rate:12,roll_expo:30,roll_srate:48,pitch_rc_rate:12,pitch_expo:30,pitch_srate:48,yaw_rc_rate:10,yaw_expo:22,yaw_srate:44},
     },
     high: {
       subtitle: 'Snappy whoop for tricks and racing',
@@ -117,10 +109,9 @@ const DB = {
         iterm_relax_cutoff:12,
       },
       masterSettings:{gyro_lpf1_static_hz:0,gyro_lpf2_static_hz:300,dyn_notch_count:2,dyn_notch_q:350,dyn_notch_min_hz:70,dyn_notch_max_hz:450},
-      rateSettings:{roll_rc_rate:16,roll_expo:25,roll_srate:58,pitch_rc_rate:16,pitch_expo:25,pitch_srate:58,yaw_rc_rate:13,yaw_expo:18,yaw_srate:52},
     },
     ultra: {
-      subtitle: 'Max authority tiny whoop — racing class',
+      subtitle: 'Max authority tiny whoop â€” racing class',
       profileSettings: {
         p_roll:95,i_roll:140,d_roll:70,f_roll:118,d_min_roll:54,
         p_pitch:100,i_pitch:145,d_pitch:75,f_pitch:122,d_min_pitch:58,
@@ -131,7 +122,6 @@ const DB = {
         iterm_relax_cutoff:14,
       },
       masterSettings:{gyro_lpf1_static_hz:0,gyro_lpf2_static_hz:360,dyn_notch_count:2,dyn_notch_q:400,dyn_notch_min_hz:80,dyn_notch_max_hz:510},
-      rateSettings:{roll_rc_rate:20,roll_expo:20,roll_srate:66,pitch_rc_rate:20,pitch_expo:20,pitch_srate:66,yaw_rc_rate:17,yaw_expo:14,yaw_srate:60},
     },
   },
 
@@ -148,7 +138,6 @@ const DB = {
         iterm_relax_cutoff:10,
       },
       masterSettings:{gyro_lpf1_static_hz:0,gyro_lpf2_static_hz:290,dyn_notch_count:2,dyn_notch_q:390,dyn_notch_min_hz:75,dyn_notch_max_hz:440},
-      rateSettings:{roll_rc_rate:12,roll_expo:35,roll_srate:46,pitch_rc_rate:12,pitch_expo:35,pitch_srate:46,yaw_rc_rate:10,yaw_expo:25,yaw_srate:40},
     },
     medium: {
       subtitle: 'Balanced 3" freestyle',
@@ -162,7 +151,6 @@ const DB = {
         iterm_relax_cutoff:12,
       },
       masterSettings:{gyro_lpf1_static_hz:0,gyro_lpf2_static_hz:340,dyn_notch_count:2,dyn_notch_q:420,dyn_notch_min_hz:88,dyn_notch_max_hz:475},
-      rateSettings:{roll_rc_rate:16,roll_expo:28,roll_srate:56,pitch_rc_rate:16,pitch_expo:28,pitch_srate:56,yaw_rc_rate:13,yaw_expo:20,yaw_srate:50},
     },
     high: {
       subtitle: 'Snappy 3" for tech freestyle',
@@ -176,10 +164,9 @@ const DB = {
         iterm_relax_cutoff:14,
       },
       masterSettings:{gyro_lpf1_static_hz:0,gyro_lpf2_static_hz:398,dyn_notch_count:2,dyn_notch_q:445,dyn_notch_min_hz:99,dyn_notch_max_hz:498},
-      rateSettings:{roll_rc_rate:20,roll_expo:22,roll_srate:64,pitch_rc_rate:20,pitch_expo:22,pitch_srate:64,yaw_rc_rate:16,yaw_expo:16,yaw_srate:58},
     },
     ultra: {
-      subtitle: 'Max 3" — clean build required',
+      subtitle: 'Max 3" â€” clean build required',
       profileSettings: {
         p_roll:75,i_roll:110,d_roll:58,f_roll:158,d_min_roll:41,
         p_pitch:78,i_pitch:114,d_pitch:62,f_pitch:163,d_min_pitch:45,
@@ -190,13 +177,12 @@ const DB = {
         iterm_relax_cutoff:15,
       },
       masterSettings:{gyro_lpf1_static_hz:0,gyro_lpf2_static_hz:450,dyn_notch_count:1,dyn_notch_q:500,dyn_notch_min_hz:118,dyn_notch_max_hz:548},
-      rateSettings:{roll_rc_rate:22,roll_expo:18,roll_srate:70,pitch_rc_rate:22,pitch_expo:18,pitch_srate:70,yaw_rc_rate:18,yaw_expo:12,yaw_srate:63},
     },
   },
 
   '3inch_cinewhoop': {
     low: {
-      subtitle: 'Ultra smooth — indoor filming, zero prop wash',
+      subtitle: 'Ultra smooth â€” indoor filming, zero prop wash',
       profileSettings: {
         p_roll:54,i_roll:93,d_roll:40,f_roll:0,d_min_roll:28,
         p_pitch:57,i_pitch:98,d_pitch:46,f_pitch:0,d_min_pitch:33,
@@ -208,10 +194,9 @@ const DB = {
         iterm_relax_cutoff:8,
       },
       masterSettings:{gyro_lpf1_static_hz:0,gyro_lpf2_static_hz:192,dyn_notch_count:3,dyn_notch_q:275,dyn_notch_min_hz:45,dyn_notch_max_hz:338},
-      rateSettings:{roll_rc_rate:7,roll_expo:42,roll_srate:30,pitch_rc_rate:7,pitch_expo:42,pitch_srate:30,yaw_rc_rate:6,yaw_expo:32,yaw_srate:26},
     },
     medium: {
-      subtitle: 'Balanced cinewhoop — smooth video and control',
+      subtitle: 'Balanced cinewhoop â€” smooth video and control',
       profileSettings: {
         p_roll:64,i_roll:100,d_roll:49,f_roll:0,d_min_roll:34,
         p_pitch:67,i_pitch:105,d_pitch:54,f_pitch:0,d_min_pitch:38,
@@ -223,7 +208,6 @@ const DB = {
         iterm_relax_cutoff:10,
       },
       masterSettings:{gyro_lpf1_static_hz:0,gyro_lpf2_static_hz:244,dyn_notch_count:3,dyn_notch_q:296,dyn_notch_min_hz:58,dyn_notch_max_hz:395},
-      rateSettings:{roll_rc_rate:10,roll_expo:37,roll_srate:40,pitch_rc_rate:10,pitch_expo:37,pitch_srate:40,yaw_rc_rate:8,yaw_expo:27,yaw_srate:35},
     },
     high: {
       subtitle: 'Responsive cinewhoop for fast proximity',
@@ -238,7 +222,6 @@ const DB = {
         iterm_relax_cutoff:12,
       },
       masterSettings:{gyro_lpf1_static_hz:0,gyro_lpf2_static_hz:292,dyn_notch_count:2,dyn_notch_q:342,dyn_notch_min_hz:67,dyn_notch_max_hz:428},
-      rateSettings:{roll_rc_rate:13,roll_expo:31,roll_srate:50,pitch_rc_rate:13,pitch_expo:31,pitch_srate:50,yaw_rc_rate:11,yaw_expo:23,yaw_srate:44},
     },
     ultra: {
       subtitle: 'Max cinewhoop authority',
@@ -253,13 +236,12 @@ const DB = {
         iterm_relax_cutoff:14,
       },
       masterSettings:{gyro_lpf1_static_hz:0,gyro_lpf2_static_hz:342,dyn_notch_count:2,dyn_notch_q:395,dyn_notch_min_hz:77,dyn_notch_max_hz:472},
-      rateSettings:{roll_rc_rate:16,roll_expo:25,roll_srate:58,pitch_rc_rate:16,pitch_expo:25,pitch_srate:58,yaw_rc_rate:13,yaw_expo:18,yaw_srate:52},
     },
   },
 
   '5inch': {
     low: {
-      subtitle: 'Cinematic 5" — smooth footage, cool motors',
+      subtitle: 'Cinematic 5" â€” smooth footage, cool motors',
       profileSettings: {
         p_roll:38,i_roll:75,d_roll:32,f_roll:0,d_min_roll:24,
         p_pitch:40,i_pitch:78,d_pitch:36,f_pitch:0,d_min_pitch:28,
@@ -271,10 +253,9 @@ const DB = {
         iterm_relax_cutoff:10,
       },
       masterSettings:{gyro_lpf1_static_hz:0,gyro_lpf2_static_hz:240,dyn_notch_count:3,dyn_notch_q:340,dyn_notch_min_hz:78,dyn_notch_max_hz:472},
-      rateSettings:{roll_rc_rate:9,roll_expo:40,roll_srate:40,pitch_rc_rate:9,pitch_expo:40,pitch_srate:40,yaw_rc_rate:8,yaw_expo:30,yaw_srate:36},
     },
     medium: {
-      subtitle: 'Everyday freestyle — balanced, prop wash resilient',
+      subtitle: 'Everyday freestyle â€” balanced, prop wash resilient',
       profileSettings: {
         p_roll:45,i_roll:80,d_roll:40,f_roll:120,d_min_roll:30,
         p_pitch:47,i_pitch:84,d_pitch:46,f_pitch:125,d_min_pitch:34,
@@ -286,10 +267,9 @@ const DB = {
         iterm_relax_cutoff:12,
       },
       masterSettings:{gyro_lpf1_static_hz:0,gyro_lpf2_static_hz:345,dyn_notch_count:2,dyn_notch_q:398,dyn_notch_min_hz:98,dyn_notch_max_hz:496},
-      rateSettings:{roll_rc_rate:14,roll_expo:33,roll_srate:52,pitch_rc_rate:14,pitch_expo:33,pitch_srate:52,yaw_rc_rate:12,yaw_expo:24,yaw_srate:46},
     },
     high: {
-      subtitle: 'Aggressive 5" — snappy punch, higher P/D',
+      subtitle: 'Aggressive 5" â€” snappy punch, higher P/D',
       profileSettings: {
         p_roll:55,i_roll:90,d_roll:48,f_roll:160,d_min_roll:36,
         p_pitch:58,i_pitch:95,d_pitch:52,f_pitch:165,d_min_pitch:40,
@@ -301,10 +281,9 @@ const DB = {
         iterm_relax_cutoff:14,
       },
       masterSettings:{gyro_lpf1_static_hz:0,gyro_lpf2_static_hz:415,dyn_notch_count:2,dyn_notch_q:445,dyn_notch_min_hz:118,dyn_notch_max_hz:528},
-      rateSettings:{roll_rc_rate:18,roll_expo:28,roll_srate:61,pitch_rc_rate:18,pitch_expo:28,pitch_srate:61,yaw_rc_rate:15,yaw_expo:20,yaw_srate:55},
     },
     ultra: {
-      subtitle: 'Max 5" authority — racing response, clean build required',
+      subtitle: 'Max 5" authority â€” racing response, clean build required',
       profileSettings: {
         p_roll:65,i_roll:95,d_roll:52,f_roll:200,d_min_roll:40,
         p_pitch:68,i_pitch:100,d_pitch:56,f_pitch:210,d_min_pitch:44,
@@ -316,7 +295,6 @@ const DB = {
         iterm_relax_cutoff:15,
       },
       masterSettings:{gyro_lpf1_static_hz:0,gyro_lpf2_static_hz:476,dyn_notch_count:1,dyn_notch_q:498,dyn_notch_min_hz:148,dyn_notch_max_hz:576},
-      rateSettings:{roll_rc_rate:22,roll_expo:22,roll_srate:70,pitch_rc_rate:22,pitch_expo:22,pitch_srate:70,yaw_rc_rate:18,yaw_expo:15,yaw_srate:63},
     },
   },
 
@@ -334,10 +312,9 @@ const DB = {
         iterm_relax_cutoff:15,
       },
       masterSettings:{gyro_lpf1_static_hz:0,gyro_lpf2_static_hz:376,dyn_notch_count:1,dyn_notch_q:498,dyn_notch_min_hz:128,dyn_notch_max_hz:496},
-      rateSettings:{roll_rc_rate:20,roll_expo:24,roll_srate:67,pitch_rc_rate:20,pitch_expo:24,pitch_srate:67,yaw_rc_rate:17,yaw_expo:18,yaw_srate:60},
     },
     medium: {
-      subtitle: 'Balanced race — cornering plus straight-line speed',
+      subtitle: 'Balanced race â€” cornering plus straight-line speed',
       profileSettings: {
         p_roll:50,i_roll:70,d_roll:30,f_roll:150,d_min_roll:25,
         p_pitch:52,i_pitch:73,d_pitch:34,f_pitch:155,d_min_pitch:28,
@@ -349,10 +326,9 @@ const DB = {
         iterm_relax_cutoff:16,
       },
       masterSettings:{gyro_lpf1_static_hz:0,gyro_lpf2_static_hz:418,dyn_notch_count:1,dyn_notch_q:500,dyn_notch_min_hz:138,dyn_notch_max_hz:516},
-      rateSettings:{roll_rc_rate:23,roll_expo:20,roll_srate:72,pitch_rc_rate:23,pitch_expo:20,pitch_srate:72,yaw_rc_rate:20,yaw_expo:15,yaw_srate:65},
     },
     high: {
-      subtitle: 'Sharp race — snappy, requires clean build',
+      subtitle: 'Sharp race â€” snappy, requires clean build',
       profileSettings: {
         p_roll:58,i_roll:75,d_roll:35,f_roll:180,d_min_roll:28,
         p_pitch:60,i_pitch:78,d_pitch:38,f_pitch:185,d_min_pitch:32,
@@ -364,10 +340,9 @@ const DB = {
         iterm_relax_cutoff:17,
       },
       masterSettings:{gyro_lpf1_static_hz:0,gyro_lpf2_static_hz:448,dyn_notch_count:1,dyn_notch_q:548,dyn_notch_min_hz:148,dyn_notch_max_hz:548},
-      rateSettings:{roll_rc_rate:26,roll_expo:17,roll_srate:77,pitch_rc_rate:26,pitch_expo:17,pitch_srate:77,yaw_rc_rate:22,yaw_expo:12,yaw_srate:69},
     },
     ultra: {
-      subtitle: 'Absolute max race — ultra clean build required',
+      subtitle: 'Absolute max race â€” ultra clean build required',
       profileSettings: {
         p_roll:68,i_roll:80,d_roll:40,f_roll:220,d_min_roll:32,
         p_pitch:70,i_pitch:84,d_pitch:44,f_pitch:225,d_min_pitch:36,
@@ -379,13 +354,12 @@ const DB = {
         iterm_relax_cutoff:18,
       },
       masterSettings:{gyro_lpf1_static_hz:0,gyro_lpf2_static_hz:498,dyn_notch_count:1,dyn_notch_q:598,dyn_notch_min_hz:158,dyn_notch_max_hz:598},
-      rateSettings:{roll_rc_rate:28,roll_expo:14,roll_srate:82,pitch_rc_rate:28,pitch_expo:14,pitch_srate:82,yaw_rc_rate:24,yaw_expo:10,yaw_srate:74},
     },
   },
 
   '6inch': {
     low: {
-      subtitle: 'Efficiency focus — smooth cruise, minimal D-noise',
+      subtitle: 'Efficiency focus â€” smooth cruise, minimal D-noise',
       profileSettings: {
         p_roll:35,i_roll:70,d_roll:28,f_roll:0,d_min_roll:20,
         p_pitch:38,i_pitch:73,d_pitch:32,f_pitch:0,d_min_pitch:24,
@@ -397,7 +371,6 @@ const DB = {
         iterm_relax_cutoff:9,
       },
       masterSettings:{gyro_lpf1_static_hz:0,gyro_lpf2_static_hz:218,dyn_notch_count:3,dyn_notch_q:316,dyn_notch_min_hz:68,dyn_notch_max_hz:415},
-      rateSettings:{roll_rc_rate:8,roll_expo:42,roll_srate:36,pitch_rc_rate:8,pitch_expo:42,pitch_srate:36,yaw_rc_rate:7,yaw_expo:32,yaw_srate:32},
     },
     medium: {
       subtitle: 'Efficient cruising with decent freestyle',
@@ -412,10 +385,9 @@ const DB = {
         iterm_relax_cutoff:11,
       },
       masterSettings:{gyro_lpf1_static_hz:0,gyro_lpf2_static_hz:276,dyn_notch_count:2,dyn_notch_q:378,dyn_notch_min_hz:83,dyn_notch_max_hz:457},
-      rateSettings:{roll_rc_rate:11,roll_expo:36,roll_srate:45,pitch_rc_rate:11,pitch_expo:36,pitch_srate:45,yaw_rc_rate:9,yaw_expo:26,yaw_srate:40},
     },
     high: {
-      subtitle: 'Active LR — freestyle capability with efficiency',
+      subtitle: 'Active LR â€” freestyle capability with efficiency',
       profileSettings: {
         p_roll:50,i_roll:85,d_roll:42,f_roll:120,d_min_roll:30,
         p_pitch:52,i_pitch:88,d_pitch:45,f_pitch:125,d_min_pitch:34,
@@ -427,10 +399,9 @@ const DB = {
         iterm_relax_cutoff:13,
       },
       masterSettings:{gyro_lpf1_static_hz:0,gyro_lpf2_static_hz:336,dyn_notch_count:2,dyn_notch_q:418,dyn_notch_min_hz:98,dyn_notch_max_hz:487},
-      rateSettings:{roll_rc_rate:14,roll_expo:30,roll_srate:53,pitch_rc_rate:14,pitch_expo:30,pitch_srate:53,yaw_rc_rate:11,yaw_expo:22,yaw_srate:47},
     },
     ultra: {
-      subtitle: 'Max LR authority — balance and prop balance essential',
+      subtitle: 'Max LR authority â€” balance and prop balance essential',
       profileSettings: {
         p_roll:58,i_roll:92,d_roll:48,f_roll:148,d_min_roll:35,
         p_pitch:60,i_pitch:95,d_pitch:52,f_pitch:153,d_min_pitch:38,
@@ -442,7 +413,6 @@ const DB = {
         iterm_relax_cutoff:14,
       },
       masterSettings:{gyro_lpf1_static_hz:0,gyro_lpf2_static_hz:386,dyn_notch_count:2,dyn_notch_q:456,dyn_notch_min_hz:113,dyn_notch_max_hz:516},
-      rateSettings:{roll_rc_rate:17,roll_expo:26,roll_srate:60,pitch_rc_rate:17,pitch_expo:26,pitch_srate:60,yaw_rc_rate:14,yaw_expo:18,yaw_srate:54},
     },
   },
 };
@@ -452,9 +422,9 @@ DB['75mm']  = DB['65mm'];
 DB['4inch'] = DB['3inch'];
 DB['7inch'] = DB['6inch'];
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Public API
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /** Build a full preset object from frame size + level */
 export function getPreset(frameSize, level) {
@@ -474,11 +444,10 @@ export function getPreset(frameSize, level) {
     icon:           levelMeta.icon,
     accentColor:    sizeMeta.accentColor,
     tags:           sizeMeta.tags,
-    highlight:      level === 'ultra' ? 'Very aggressive — review before flying' :
+    highlight:      level === 'ultra' ? 'Very aggressive â€” review before flying' :
                     level === 'high'  ? 'Requires a reasonably clean build' : undefined,
     profileSettings: base.profileSettings ?? {},
     masterSettings:  base.masterSettings  ?? {},
-    rateSettings:    base.rateSettings    ?? {},
   };
 }
 

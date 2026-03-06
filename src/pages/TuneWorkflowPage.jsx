@@ -2,7 +2,7 @@
 import { useNavigate } from 'react-router-dom';
 import {
   Waypoints, CheckCircle2, AlertCircle, AlertTriangle,
-  ChevronRight, Loader2, Info,
+  ChevronRight, ChevronDown, Loader2, Info,
   Lock, Copy, Check, Play, RotateCw, Cpu, X, SkipForward,
   ClipboardList, Rocket, FileDown, RotateCcw, Sparkles
 } from 'lucide-react';
@@ -14,6 +14,9 @@ import { generateAIInsight } from '../lib/aiInterpreter';
 import FileUpload from '../components/shared/FileUpload';
 import { generateNoiseHeatmap } from '../lib/analyzers/noiseProfile';
 import NoiseHeatmap from '../components/NoiseHeatmap';
+import StageTabView from '../components/StageTabView';
+import EvidenceChart from '../components/EvidenceChart';
+import CLICommandsPanel from '../components/CLICommandsPanel';
 import {
   createInitialPipelineState,
   pipelineReducer,
@@ -82,6 +85,234 @@ const STAGE_BORDER_COLORS = [
   'border-orange-700/50',
   'border-emerald-700/50',
 ];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Score Gauge (SVG donut)
+// ─────────────────────────────────────────────────────────────────────────────
+function ScoreGauge({ score, size = 56 }) {
+  const radius = (size / 2) - 6;
+  const circumference = 2 * Math.PI * radius;
+  const pct = Math.max(0, Math.min(100, score)) / 100;
+  const color = score >= 70 ? '#22c55e' : score >= 40 ? '#f59e0b' : '#ef4444';
+
+  return (
+    <svg width={size} height={size} className="flex-shrink-0">
+      <circle cx={size/2} cy={size/2} r={radius} fill="none" stroke="#1e293b" strokeWidth={5} />
+      <circle
+        cx={size/2} cy={size/2} r={radius}
+        fill="none" stroke={color} strokeWidth={5}
+        strokeDasharray={`${pct * circumference} ${circumference}`}
+        strokeLinecap="round"
+        transform={`rotate(-90 ${size/2} ${size/2})`}
+        style={{ transition: 'stroke-dasharray 0.5s ease' }}
+      />
+      <text x={size/2} y={size/2 + 1} textAnchor="middle" dominantBaseline="middle"
+        fill={color} fontSize={size < 60 ? 13 : 16} fontWeight="700" fontFamily="monospace">
+        {score}
+      </text>
+    </svg>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Expandable Issue Row
+// ─────────────────────────────────────────────────────────────────────────────
+function IssueRow({ issue }) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div className={`rounded-lg border ${
+      issue.level === 'critical' ? 'bg-red-900/20 border-red-700/40 text-red-300' : 'bg-amber-900/20 border-amber-700/40 text-amber-300'
+    }`}>
+      <button
+        className="w-full flex items-center gap-2 text-xs px-3 py-2 text-left"
+        onClick={() => setExpanded(!expanded)}
+      >
+        {issue.level === 'critical' ? <AlertCircle size={12} /> : <AlertTriangle size={12} />}
+        <span className="flex-1">{issue.summary}</span>
+        {issue.score !== null && <span className="font-semibold">{issue.score}</span>}
+        <ChevronDown size={12} className={`transition-transform ${expanded ? 'rotate-180' : ''}`} />
+      </button>
+      {expanded && issue.detail && (
+        <div className="px-3 pb-2.5 pt-0 text-[11px] opacity-80 leading-relaxed border-t border-current/10 mt-0">
+          <p className="pt-1.5">{issue.detail}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Pipeline Progress Chips
+// ─────────────────────────────────────────────────────────────────────────────
+function PipelineProgressChips({ stages }) {
+  return (
+    <div className="flex gap-1 my-2">
+      {stages.map((stage) => (
+        <div
+          key={stage.id}
+          className={`flex-1 h-1.5 rounded transition-colors ${
+            stage.status === 'completed' ? 'bg-emerald-500'
+            : stage.status === 'active' ? 'bg-violet-500 animate-pulse'
+            : 'bg-gray-800'
+          }`}
+          title={`${stage.title}: ${stage.status}`}
+        />
+      ))}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Charts Tab (per-stage evidence charts)
+// ─────────────────────────────────────────────────────────────────────────────
+function ChartsTab({ stage, bbParsed, stageAnalysis }) {
+  const subsample = (arr, maxPoints = 500) => {
+    if (!arr || arr.length <= maxPoints) return arr || [];
+    const step = Math.floor(arr.length / maxPoints);
+    return arr.filter((_, i) => i % step === 0);
+  };
+
+  // Try to extract gyro/motor data from the parsed blackbox
+  const data = bbParsed?.data || [];
+  const headers = bbParsed?.headers || {};
+  const columns = bbParsed?.columns || [];
+
+  // Helper to get column data by name pattern
+  const getColumn = (pattern) => {
+    const idx = columns.findIndex(c => c.toLowerCase().includes(pattern.toLowerCase()));
+    if (idx === -1) return null;
+    return data.map(row => parseFloat(row[idx])).filter(v => isFinite(v));
+  };
+
+  const gyroRoll = getColumn('gyro[0]') || getColumn('gyroADC[0]') || [];
+  const gyroPitch = getColumn('gyro[1]') || getColumn('gyroADC[1]') || [];
+  const gyroYaw = getColumn('gyro[2]') || getColumn('gyroADC[2]') || [];
+  const motor0 = getColumn('motor[0]') || [];
+  const motor1 = getColumn('motor[1]') || [];
+  const motor2 = getColumn('motor[2]') || [];
+  const motor3 = getColumn('motor[3]') || [];
+  const rcRoll = getColumn('rcCommand[0]') || [];
+  const throttle = getColumn('rcCommand[3]') || getColumn('throttle') || [];
+
+  if (stage.id === 'noise') {
+    if (!gyroRoll.length && !motor0.length) {
+      return <div className="text-xs text-gray-500 italic p-4">No gyro/motor data available for charts. Upload a blackbox log with gyro data.</div>;
+    }
+    return (
+      <div className="space-y-3">
+        {gyroRoll.length > 0 && (
+          <EvidenceChart
+            title="Gyro Raw — Roll / Pitch / Yaw"
+            datasets={[
+              { label: 'Roll', data: subsample(gyroRoll), color: '#6366f1' },
+              { label: 'Pitch', data: subsample(gyroPitch), color: '#22c55e' },
+              { label: 'Yaw', data: subsample(gyroYaw), color: '#f59e0b' },
+            ]}
+            xLabel="Frame" yLabel="Gyro (deg/s)"
+            annotations={[{ type: 'hline', value: 15, color: 'rgba(255,100,100,0.5)', label: 'Noise threshold' }]}
+            height={180}
+          />
+        )}
+        {motor0.length > 0 && (
+          <EvidenceChart
+            title="Motor Output — M1 / M2 / M3 / M4"
+            datasets={[
+              { label: 'M1', data: subsample(motor0), color: '#ef4444' },
+              { label: 'M2', data: subsample(motor1), color: '#3b82f6' },
+              { label: 'M3', data: subsample(motor2), color: '#10b981' },
+              { label: 'M4', data: subsample(motor3), color: '#f59e0b' },
+            ]}
+            xLabel="Frame" yLabel="Motor Output"
+            height={160}
+          />
+        )}
+      </div>
+    );
+  }
+
+  if (stage.id === 'filters') {
+    if (!gyroRoll.length) {
+      return <div className="text-xs text-gray-500 italic p-4">No filter data available. Upload a blackbox log.</div>;
+    }
+    const dRoll = getColumn('axisD[0]') || getColumn('dterm[0]') || [];
+    const dPitch = getColumn('axisD[1]') || getColumn('dterm[1]') || [];
+    return (
+      <div className="space-y-3">
+        <EvidenceChart
+          title="Gyro Signal — Roll / Pitch"
+          datasets={[
+            { label: 'Roll', data: subsample(gyroRoll), color: '#6366f1', lineWidth: 1.5 },
+            { label: 'Pitch', data: subsample(gyroPitch), color: '#22c55e', lineWidth: 1.5 },
+          ]}
+          height={180}
+        />
+        {dRoll.length > 0 && (
+          <EvidenceChart
+            title="D-term Output — Roll / Pitch"
+            datasets={[
+              { label: 'D Roll', data: subsample(dRoll), color: '#6366f1' },
+              { label: 'D Pitch', data: subsample(dPitch), color: '#f59e0b' },
+            ]}
+            height={160}
+          />
+        )}
+      </div>
+    );
+  }
+
+  if (stage.id === 'pids') {
+    if (!gyroRoll.length && !rcRoll.length) {
+      return <div className="text-xs text-gray-500 italic p-4">No PID data available.</div>;
+    }
+    return (
+      <EvidenceChart
+        title="Step Response — RC Command vs Gyro Roll"
+        datasets={[
+          ...(rcRoll.length ? [{ label: 'RC Command', data: subsample(rcRoll), color: '#888', lineWidth: 1 }] : []),
+          ...(gyroRoll.length ? [{ label: 'Gyro Roll', data: subsample(gyroRoll), color: '#6366f1' }] : []),
+        ]}
+        annotations={stageAnalysis?.metrics?.overshoot_percent ? [{ type: 'hline', value: 0, color: 'rgba(255,255,255,0.1)' }] : []}
+        height={200}
+      />
+    );
+  }
+
+  if (stage.id === 'feedforward') {
+    if (!gyroRoll.length && !rcRoll.length) {
+      return <div className="text-xs text-gray-500 italic p-4">No feedforward data available.</div>;
+    }
+    return (
+      <EvidenceChart
+        title="RC Command vs Gyro Response (Roll)"
+        datasets={[
+          ...(rcRoll.length ? [{ label: 'RC Command', data: subsample(rcRoll), color: '#f59e0b', lineWidth: 1 }] : []),
+          ...(gyroRoll.length ? [{ label: 'Gyro Roll', data: subsample(gyroRoll), color: '#6366f1' }] : []),
+        ]}
+        height={200}
+      />
+    );
+  }
+
+  if (stage.id === 'tpa') {
+    if (!throttle.length) {
+      return <div className="text-xs text-gray-500 italic p-4">No throttle data available.</div>;
+    }
+    const motorAvg = motor0.length ? motor0.map((v, i) => (v + (motor1[i]||0) + (motor2[i]||0) + (motor3[i]||0)) / 4) : [];
+    return (
+      <EvidenceChart
+        title="Throttle vs Motor Output"
+        datasets={[
+          { label: 'Throttle', data: subsample(throttle), color: '#f59e0b' },
+          ...(motorAvg.length ? [{ label: 'Motor Avg', data: subsample(motorAvg), color: '#6366f1' }] : []),
+        ]}
+        height={180}
+      />
+    );
+  }
+
+  return <div className="text-xs text-gray-500 italic p-4">No chart data available for this stage.</div>;
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Copy-to-clipboard hook
@@ -649,10 +880,7 @@ function StageCard({
           </div>
           {/* Health Score Gauge */}
           {healthScore !== null && (
-            <div className={`text-center flex-shrink-0 px-3 py-1 rounded-lg ${color.bg} ${color.border} border`}>
-              <div className={`text-lg font-bold ${color.text}`}>{healthScore}</div>
-              <div className="text-[10px] text-gray-500">score</div>
-            </div>
+            <ScoreGauge score={healthScore} size={56} />
           )}
           {isCompleted && (
             <button onClick={() => setExpanded(false)} className="text-gray-500 hover:text-gray-300 p-1">
@@ -677,29 +905,11 @@ function StageCard({
             </div>
           )}
 
-          {/* Tool results */}
-          {stage.analyzerKeys.length > 0 && analysisResults && (
-            <div className="space-y-1.5">
-              <h4 className="text-xs font-medium text-gray-500 mb-1">Analysis Results</h4>
-              {stage.analyzerKeys.map(k => (
-                <ToolResultBadge key={k} toolKey={k} analysisResults={analysisResults} />
-              ))}
-            </div>
-          )}
-
-          {/* Issues */}
-          {issues.length > 0 && (
-            <div className="space-y-1.5">
-              <h4 className="text-xs font-medium text-gray-500">Issues Found</h4>
-              {issues.map((issue, i) => (
-                <div key={i} className={`flex items-center gap-2 text-xs px-3 py-2 rounded-lg border ${
-                  issue.level === 'critical' ? 'bg-red-900/20 border-red-700/40 text-red-300' : 'bg-amber-900/20 border-amber-700/40 text-amber-300'
-                }`}>
-                  {issue.level === 'critical' ? <AlertCircle size={12} /> : <AlertTriangle size={12} />}
-                  <span className="flex-1">{issue.summary}</span>
-                  {issue.score !== null && <span className="font-semibold">{issue.score}</span>}
-                </div>
-              ))}
+          {/* Empty state when no data at all */}
+          {!dataReady && isActive && stage.id !== 'verification' && (
+            <div className="text-center py-6">
+              <div className="text-3xl mb-2">📁</div>
+              <div className="text-sm text-gray-500">Upload a blackbox log to see {stage.title} analysis</div>
             </div>
           )}
 
@@ -708,102 +918,161 @@ function StageCard({
             <VerificationContent pipeline={pipeline} analysisResults={analysisResults} />
           )}
 
-          {/* Recommendations */}
-          {recommendations.length > 0 && stage.id !== 'verification' && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <h4 className="text-xs font-medium text-gray-500">
-                  Recommendations ({recommendations.length})
-                </h4>
-                {allCLI.length > 0 && (
-                  <button
-                    onClick={handleCopyAll}
-                    className="text-[11px] text-gray-500 hover:text-white flex items-center gap-1 transition-colors"
-                  >
-                    {copied ? <><Check size={10} className="text-emerald-400" /> Copied!</> : <><Copy size={10} /> Copy All CLI</>}
-                  </button>
-                )}
-              </div>
-              <div className="space-y-1.5 max-h-72 overflow-y-auto pr-1">
-                {recommendations.map((rec, idx) => (
-                  <RecommendationCard
-                    key={rec.id || idx}
-                    rec={rec}
-                    isApplied={stage.appliedRecommendations.includes(rec.cliCommand || rec.message)}
-                    onToggle={() => handleToggleRec(rec)}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Tabbed content for non-verification stages */}
+          {stage.id !== 'verification' && dataReady && (
+            <StageTabView
+              tabs={[
+                {
+                  id: 'analysis',
+                  icon: '📊',
+                  label: 'Analysis',
+                  content: (
+                    <div className="space-y-4">
+                      {/* Tool results */}
+                      {stage.analyzerKeys.length > 0 && analysisResults && (
+                        <div className="space-y-1.5">
+                          <h4 className="text-xs font-medium text-gray-500 mb-1">Analysis Results</h4>
+                          {stage.analyzerKeys.map(k => (
+                            <ToolResultBadge key={k} toolKey={k} analysisResults={analysisResults} />
+                          ))}
+                        </div>
+                      )}
 
-          {/* No recommendations placeholder */}
-          {recommendations.length === 0 && stage.id !== 'verification' && dataReady && analysisResults && Object.keys(analysisResults).length > 0 && (
-            <div className="text-xs text-gray-500 italic flex items-center gap-1.5 py-2">
-              <Info size={12} />
-              {healthScore === null
-                ? 'Run analysis to see recommendations for this stage.'
-                : 'No specific recommendations — this stage looks good!'}
-            </div>
-          )}
+                      {/* Issues */}
+                      {issues.length > 0 && (
+                        <div className="space-y-1.5">
+                          <h4 className="text-xs font-medium text-gray-500">Issues Found</h4>
+                          {issues.map((issue, i) => (
+                            <IssueRow key={i} issue={issue} />
+                          ))}
+                        </div>
+                      )}
 
-          {/* No analysis yet */}
-          {(!analysisResults || Object.keys(analysisResults).length === 0) && stage.id !== 'verification' && (
-            <p className="text-xs text-gray-500 italic flex items-center gap-1.5 py-1">
-              <Info size={12} /> Run &quot;Analyze All&quot; above to see results for this stage.
-            </p>
-          )}
+                      {/* Recommendations */}
+                      {recommendations.length > 0 && (
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-xs font-medium text-gray-500">
+                              Recommendations ({recommendations.length})
+                            </h4>
+                            {allCLI.length > 0 && (
+                              <button
+                                onClick={handleCopyAll}
+                                className="text-[11px] text-gray-500 hover:text-white flex items-center gap-1 transition-colors"
+                              >
+                                {copied ? <><Check size={10} className="text-emerald-400" /> Copied!</> : <><Copy size={10} /> Copy All CLI</>}
+                              </button>
+                            )}
+                          </div>
+                          <div className="space-y-1.5 max-h-72 overflow-y-auto pr-1">
+                            {recommendations.map((rec, idx) => (
+                              <RecommendationCard
+                                key={rec.id || idx}
+                                rec={rec}
+                                isApplied={stage.appliedRecommendations.includes(rec.cliCommand || rec.message)}
+                                onToggle={() => handleToggleRec(rec)}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      )}
 
-          {/* Noise Heatmap */}
-          {stage.id === 'noise' && dataReady && (
-            <div className="space-y-2 border-t border-gray-700/30 pt-3">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleGenerateHeatmap}
-                  disabled={heatmapLoading}
-                  className="text-xs bg-blue-700 hover:bg-blue-600 disabled:opacity-40 text-white px-3 py-1.5 rounded-lg inline-flex items-center gap-1.5"
-                >
-                  {heatmapLoading ? <><Loader2 size={12} className="animate-spin" /> Generating...</> : 'Generate Noise Heatmap'}
-                </button>
-                {heatmapError && <span className="text-xs text-red-300">{heatmapError}</span>}
-              </div>
-              {heatmapData && <NoiseHeatmap heatmapData={heatmapData} />}
-            </div>
-          )}
+                      {/* No recommendations placeholder */}
+                      {recommendations.length === 0 && analysisResults && Object.keys(analysisResults).length > 0 && (
+                        <div className="text-xs text-gray-500 italic flex items-center gap-1.5 py-2">
+                          <Info size={12} />
+                          {healthScore === null
+                            ? 'Run analysis to see recommendations for this stage.'
+                            : 'No specific recommendations — this stage looks good!'}
+                        </div>
+                      )}
 
-          {/* AI Interpretation */}
-          {stage.id !== 'verification' && isActive && (
-            <div className="space-y-2 border-t border-gray-700/30 pt-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <button
-                  onClick={handleGetAIInsight}
-                  disabled={aiLoading || !stageAnalysisData}
-                  className="text-xs bg-violet-700 hover:bg-violet-600 disabled:opacity-40 text-white px-3 py-1.5 rounded-lg inline-flex items-center gap-1.5"
-                >
-                  {aiLoading ? <><Loader2 size={12} className="animate-spin" /> Analyzing...</> : <><Sparkles size={12} /> Get AI Insight</>}
-                </button>
-                <input
-                  type="password"
-                  value={aiApiKey}
-                  onChange={(e) => setAiApiKey(e.target.value)}
-                  onBlur={handleSaveApiKey}
-                  placeholder="Anthropic API Key"
-                  className="text-xs bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-gray-300 min-w-[180px]"
-                />
-              </div>
-              {aiError && (
-                <div className="text-xs text-red-300 bg-red-900/20 border border-red-700/40 rounded-lg px-3 py-2">
-                  {aiError} (fallback: keep using rule-based recommendations above)
-                </div>
-              )}
-              {aiText && aiExpanded && (
-                <div className="bg-blue-900/20 border border-blue-700/40 rounded-lg px-3 py-2.5 space-y-1.5">
-                  <div className="text-xs font-semibold text-blue-300">AI Interpretation</div>
-                  <p className="text-xs text-blue-100 whitespace-pre-wrap leading-relaxed">{aiText}</p>
-                  <p className="text-[10px] text-blue-300/80">AI suggestions are advisory; verify with test flight.</p>
-                </div>
-              )}
-            </div>
+                      {/* No analysis yet */}
+                      {(!analysisResults || Object.keys(analysisResults).length === 0) && (
+                        <p className="text-xs text-gray-500 italic flex items-center gap-1.5 py-1">
+                          <Info size={12} /> Run &quot;Analyze All&quot; above to see results for this stage.
+                        </p>
+                      )}
+
+                      {/* Noise Heatmap */}
+                      {stage.id === 'noise' && (
+                        <div className="space-y-2 border-t border-gray-700/30 pt-3">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={handleGenerateHeatmap}
+                              disabled={heatmapLoading}
+                              className="text-xs bg-blue-700 hover:bg-blue-600 disabled:opacity-40 text-white px-3 py-1.5 rounded-lg inline-flex items-center gap-1.5"
+                            >
+                              {heatmapLoading ? <><Loader2 size={12} className="animate-spin" /> Generating...</> : 'Generate Noise Heatmap'}
+                            </button>
+                            {heatmapError && <span className="text-xs text-red-300">{heatmapError}</span>}
+                          </div>
+                          {heatmapData && <NoiseHeatmap heatmapData={heatmapData} />}
+                        </div>
+                      )}
+
+                      {/* AI Interpretation */}
+                      {isActive && (
+                        <div className="space-y-2 border-t border-gray-700/30 pt-3">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <button
+                              onClick={handleGetAIInsight}
+                              disabled={aiLoading || !stageAnalysisData}
+                              className="text-xs bg-violet-700 hover:bg-violet-600 disabled:opacity-40 text-white px-3 py-1.5 rounded-lg inline-flex items-center gap-1.5"
+                            >
+                              {aiLoading ? <><Loader2 size={12} className="animate-spin" /> Analyzing...</> : <><Sparkles size={12} /> Get AI Insight</>}
+                            </button>
+                            <input
+                              type="password"
+                              value={aiApiKey}
+                              onChange={(e) => setAiApiKey(e.target.value)}
+                              onBlur={handleSaveApiKey}
+                              placeholder="Anthropic API Key"
+                              className="text-xs bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-gray-300 min-w-[180px]"
+                            />
+                          </div>
+                          {aiError && (
+                            <div className="text-xs text-red-300 bg-red-900/20 border border-red-700/40 rounded-lg px-3 py-2">
+                              {aiError} (fallback: keep using rule-based recommendations above)
+                            </div>
+                          )}
+                          {aiText && aiExpanded && (
+                            <div className="bg-blue-900/20 border border-blue-700/40 rounded-lg px-3 py-2.5 space-y-1.5">
+                              <div className="text-xs font-semibold text-blue-300">AI Interpretation</div>
+                              <p className="text-xs text-blue-100 whitespace-pre-wrap leading-relaxed">{aiText}</p>
+                              <p className="text-[10px] text-blue-300/80">AI suggestions are advisory; verify with test flight.</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ),
+                },
+                ...(bbParsed ? [{
+                  id: 'charts',
+                  icon: '📈',
+                  label: 'Charts',
+                  content: <ChartsTab stage={stage} bbParsed={bbParsed} stageAnalysis={stageAnalysisData} />,
+                }] : []),
+                {
+                  id: 'cli',
+                  icon: '💻',
+                  label: `CLI Commands`,
+                  badge: stageAnalysisData?.cliCommands?.length || allCLI.length || undefined,
+                  content: (
+                    <CLICommandsPanel
+                      cliCommands={stageAnalysisData?.cliCommands || allCLI.map((cmd, i) => ({
+                        id: `rec-${i}`,
+                        comment: recommendations[i]?.message || `Command ${i + 1}`,
+                        command: cmd,
+                        severity: 'info',
+                      }))}
+                      stageTitle={stage.title}
+                    />
+                  ),
+                },
+              ]}
+            />
           )}
 
           {/* Action buttons */}
@@ -860,7 +1129,7 @@ function PipelineProgressBar({ pipeline }) {
 // ─────────────────────────────────────────────────────────────────────────────
 export default function TuneWorkflowPage() {
   const { cliParsed, bbParsed, tuningParams, analysisResults, setResult } = useData();
-  const { profile } = useDroneProfile();
+  const { profile, droneProfile } = useDroneProfile();
   const navigate = useNavigate();
 
   // Pipeline state — load from localStorage or create fresh
@@ -969,19 +1238,22 @@ export default function TuneWorkflowPage() {
           <Waypoints size={24} className="text-violet-400 flex-shrink-0" />
           <div>
             <h1 className="text-xl font-bold text-white">Sequential Tuning Pipeline</h1>
-            <p className="text-sm text-gray-400">Complete each stage in order for best results</p>
+            <p className="text-sm text-gray-400">
+              {droneProfile?.name ? `Tuning: ${droneProfile.name}` : 'Complete each stage in order for best results'}
+            </p>
           </div>
         </div>
-        {profile?.craftName && (
+        {(droneProfile?.name || profile?.craftName) && (
           <div className="flex items-center gap-2 text-xs text-violet-200 bg-violet-900/30 border border-violet-700/40 rounded-xl px-3 py-1.5">
             <Cpu size={12} className="text-violet-400" />
-            <span>{profile.craftName}{profile.frameSize ? ` · ${profile.frameSize}` : ''}</span>
+            <span>{droneProfile?.name || profile?.craftName}{profile?.frameSize ? ` · ${profile.frameSize}` : ''}</span>
           </div>
         )}
       </div>
 
       {/* ── Progress ── */}
       <PipelineProgressBar pipeline={pipeline} />
+      <PipelineProgressChips stages={pipeline.stages} />
 
       {/* ── Inline Upload Panel ── */}
       <div className="bg-gray-800/40 border border-gray-700/40 rounded-xl p-4 space-y-3">

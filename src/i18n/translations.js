@@ -159,6 +159,40 @@ const t = {
     export_comparison: 'Export Comparison Summary',
     improved: 'Improved',
     regressed: 'Regressed',
+
+    // V5 Features — Multi-Drone Profile
+    profile_myDrones: 'My Drones',
+    profile_addNew: 'New Drone',
+    profile_edit: 'Edit',
+    profile_duplicate: 'Duplicate',
+    profile_delete: 'Delete',
+    profile_setActive: 'Set as Active',
+    profile_customSize: 'Custom',
+    profile_usePreset: '← Presets',
+    profile_flyingStyle: 'Flying Style',
+    profile_notes: 'Notes',
+    profile_incompleteWarning: 'Incomplete profile — recommendations may be less accurate',
+
+    // V5 Features — CLI Commands Panel
+    cli_individualCommands: 'Individual Commands',
+    cli_copyAll: 'Copy All Commands',
+    cli_sendToFC: 'Send to FC via CLI',
+    cli_copied: 'Copied!',
+    cli_currentValue: 'current',
+    cli_recommended: 'recommended',
+    cli_noChanges: 'No CLI changes recommended',
+
+    // V5 Features — Heatmap Improvements
+    heatmap_notEnoughData: 'Not enough data for heatmap',
+    heatmap_framesProgress: 'Frames: {current} / {required} needed',
+    heatmap_tip: 'Record at least 10–15 seconds of flight with throttle variation',
+
+    // V5 Features — Stage Tabs
+    stage_analysis: 'Analysis',
+    stage_charts: 'Charts',
+    stage_cliCommands: 'CLI Commands',
+    stage_noChartData: 'No chart data available for this stage',
+    stage_uploadForCharts: 'Upload a blackbox log to see charts',
   },
 
   id: {
@@ -314,7 +348,39 @@ const t = {
     export_comparison: 'Ekspor Ringkasan Perbandingan',
     improved: 'Meningkat',
     regressed: 'Memburuk',
-  },
+    // V5 Features — Multi-Drone Profile
+    profile_myDrones: 'Drone Saya',
+    profile_addNew: 'Drone Baru',
+    profile_edit: 'Edit',
+    profile_duplicate: 'Duplikat',
+    profile_delete: 'Hapus',
+    profile_setActive: 'Jadikan Aktif',
+    profile_customSize: 'Kustom',
+    profile_usePreset: '← Preset',
+    profile_flyingStyle: 'Gaya Terbang',
+    profile_notes: 'Catatan',
+    profile_incompleteWarning: 'Profil tidak lengkap — rekomendasi mungkin kurang akurat',
+
+    // V5 Features — CLI Commands Panel
+    cli_individualCommands: 'Perintah Individual',
+    cli_copyAll: 'Salin Semua Perintah',
+    cli_sendToFC: 'Kirim ke FC via CLI',
+    cli_copied: 'Tersalin!',
+    cli_currentValue: 'sekarang',
+    cli_recommended: 'direkomendasikan',
+    cli_noChanges: 'Tidak ada perubahan CLI yang direkomendasikan',
+
+    // V5 Features — Heatmap Improvements
+    heatmap_notEnoughData: 'Data tidak cukup untuk heatmap',
+    heatmap_framesProgress: 'Frame: {current} / {required} diperlukan',
+    heatmap_tip: 'Rekam minimal 10–15 detik penerbangan dengan variasi throttle',
+
+    // V5 Features — Stage Tabs
+    stage_analysis: 'Analisis',
+    stage_charts: 'Grafik',
+    stage_cliCommands: 'Perintah CLI',
+    stage_noChartData: 'Tidak ada data grafik untuk stage ini',
+    stage_uploadForCharts: 'Upload log blackbox untuk melihat grafik',  },
 
   es: {
     // App
@@ -469,6 +535,40 @@ const t = {
     export_comparison: 'Exportar Resumen de Comparación',
     improved: 'Mejorado',
     regressed: 'Empeorado',
+
+    // V5 Features — Multi-Drone Profile
+    profile_myDrones: 'Mis Drones',
+    profile_addNew: 'Nuevo Drone',
+    profile_edit: 'Editar',
+    profile_duplicate: 'Duplicar',
+    profile_delete: 'Eliminar',
+    profile_setActive: 'Establecer como Activo',
+    profile_customSize: 'Personalizado',
+    profile_usePreset: '← Preajustes',
+    profile_flyingStyle: 'Estilo de Vuelo',
+    profile_notes: 'Notas',
+    profile_incompleteWarning: 'Perfil incompleto — las recomendaciones pueden ser menos precisas',
+
+    // V5 Features — CLI Commands Panel
+    cli_individualCommands: 'Comandos Individuales',
+    cli_copyAll: 'Copiar Todos los Comandos',
+    cli_sendToFC: 'Enviar al FC via CLI',
+    cli_copied: '¡Copiado!',
+    cli_currentValue: 'actual',
+    cli_recommended: 'recomendado',
+    cli_noChanges: 'No se recomiendan cambios CLI',
+
+    // V5 Features — Heatmap Improvements
+    heatmap_notEnoughData: 'Datos insuficientes para el mapa de calor',
+    heatmap_framesProgress: 'Frames: {current} / {required} necesarios',
+    heatmap_tip: 'Graba al menos 10–15 segundos de vuelo con variación de throttle',
+
+    // V5 Features — Stage Tabs
+    stage_analysis: 'Análisis',
+    stage_charts: 'Gráficos',
+    stage_cliCommands: 'Comandos CLI',
+    stage_noChartData: 'No hay datos de gráfico para esta etapa',
+    stage_uploadForCharts: 'Sube un log de blackbox para ver gráficos',
   },
 
   de: {
@@ -624,6 +724,40 @@ const t = {
     export_comparison: 'Vergleichszusammenfassung exportieren',
     improved: 'Verbessert',
     regressed: 'Verschlechtert',
+
+    // V5 Features — Multi-Drone Profile
+    profile_myDrones: 'Meine Drohnen',
+    profile_addNew: 'Neue Drohne',
+    profile_edit: 'Bearbeiten',
+    profile_duplicate: 'Duplizieren',
+    profile_delete: 'Löschen',
+    profile_setActive: 'Als Aktiv Setzen',
+    profile_customSize: 'Benutzerdefiniert',
+    profile_usePreset: '← Voreinstellungen',
+    profile_flyingStyle: 'Flugstil',
+    profile_notes: 'Notizen',
+    profile_incompleteWarning: 'Unvollständiges Profil — Empfehlungen können weniger genau sein',
+
+    // V5 Features — CLI Commands Panel
+    cli_individualCommands: 'Einzelne Befehle',
+    cli_copyAll: 'Alle Befehle Kopieren',
+    cli_sendToFC: 'An FC via CLI Senden',
+    cli_copied: 'Kopiert!',
+    cli_currentValue: 'aktuell',
+    cli_recommended: 'empfohlen',
+    cli_noChanges: 'Keine CLI-Änderungen empfohlen',
+
+    // V5 Features — Heatmap Improvements
+    heatmap_notEnoughData: 'Nicht genügend Daten für die Heatmap',
+    heatmap_framesProgress: 'Frames: {current} / {required} benötigt',
+    heatmap_tip: 'Mindestens 10–15 Sekunden Flug mit Throttle-Variation aufnehmen',
+
+    // V5 Features — Stage Tabs
+    stage_analysis: 'Analyse',
+    stage_charts: 'Diagramme',
+    stage_cliCommands: 'CLI-Befehle',
+    stage_noChartData: 'Keine Diagrammdaten für diese Phase verfügbar',
+    stage_uploadForCharts: 'Blackbox-Log hochladen um Diagramme zu sehen',
   },
 };
 

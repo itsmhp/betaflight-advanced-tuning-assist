@@ -211,7 +211,7 @@ const calculateNoiseScore = (grid) => {
 
 export const generateNoiseHeatmap = (blackboxData) => {
   const data = blackboxData?.data || [];
-  if (data.length < 256) return null;
+  if (data.length < 128) return null;
 
   const sampleRate = blackboxData.sampleRate || 2000;
   const gyro = data.map(r => r['roll-gyro'] ?? r['gyroADC-roll'] ?? 0);
@@ -228,11 +228,12 @@ export const generateNoiseHeatmap = (blackboxData) => {
     Array.from({ length: FREQ_BUCKETS }, () => ({ sum: 0, count: 0 }))
   );
 
-  const FFT_WINDOW = Math.min(256, nextPow2(gyro.length));
+  // Auto-scaling FFT window — pick largest window that fits at least 2× in the data
+  const FFT_WINDOW = [512, 256, 128, 64].find(w => gyro.length >= w * 2) || 64;
   const STEP = Math.floor(FFT_WINDOW / 2);
   const totalFrames = gyro.length;
 
-  for (let i = 0; i + FFT_WINDOW < totalFrames; i += STEP) {
+  for (let i = 0; i + FFT_WINDOW <= totalFrames; i += STEP) {
     const throttleSlice = throttle.slice(i, i + FFT_WINDOW);
     const avgThrottle = throttleSlice.reduce((a, b) => a + b, 0) / FFT_WINDOW;
     const throttleNorm = normalizeThrottle(avgThrottle, minThrottle, maxThrottle);

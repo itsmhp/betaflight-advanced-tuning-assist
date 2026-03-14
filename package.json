@@ -3,23 +3,25 @@
   "private": true,
   "version": "1.1.0",
   "type": "module",
-  "main": "electron/main.js",
+  "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
-    "electron:build:win": "npm run build && electron-builder --win",
-    "electron:build:mac": "npm run build && electron-builder --mac",
-    "electron:build:all": "npm run build && electron-builder --win --mac"
+    "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && cross-env NODE_ENV=development electron .\"",
+    "electron:build:win": "cross-env ELECTRON=true npm run build && electron-builder --win",
+    "electron:build:mac": "cross-env ELECTRON=true npm run build && electron-builder --mac",
+    "electron:build:all": "cross-env ELECTRON=true npm run build && electron-builder --win --mac"
   },
   "build": {
     "appId": "com.iflyfpv.tuning-assist",
     "productName": "iFlyQuad Tuning Assist",
     "copyright": "Copyright © 2026 Hanif Pratama",
     "icon": "public/icon",
-    "directories": { "output": "release" },
+    "directories": {
+      "output": "release"
+    },
     "files": [
       "dist/**/*",
       "electron/**/*",
@@ -28,8 +30,19 @@
     ],
     "win": {
       "target": [
-        { "target": "nsis", "arch": ["x64", "ia32"] },
-        { "target": "portable", "arch": ["x64"] }
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "ia32"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
       ],
       "icon": "public/icon.ico"
     },
@@ -41,7 +54,10 @@
       "shortcutName": "iFlyQuad Tuning Assist"
     },
     "mac": {
-      "target": ["dmg", "zip"],
+      "target": [
+        "dmg",
+        "zip"
+      ],
       "icon": "public/icon.icns",
       "category": "public.app-category.utilities"
     },
@@ -49,7 +65,10 @@
       "title": "iFlyQuad Tuning Assist"
     },
     "linux": {
-      "target": ["AppImage", "deb"],
+      "target": [
+        "AppImage",
+        "deb"
+      ],
       "icon": "public/icon.png"
     }
   },
@@ -68,6 +87,7 @@
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.4.1",
     "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
     "electron": "^40.8.0",
     "electron-builder": "^26.8.1",
     "eslint": "^9.25.0",

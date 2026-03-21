@@ -1,16 +1,18 @@
 /**
  * SerialCLIPage.jsx — WebSerial Betaflight CLI terminal.
  * Compatible with Chrome 89+ and Edge 89+ only (Web Serial API).
+ *
+ * Fixes: auto-enters CLI mode, line-buffered output, command history,
+ * "Import to Analysis" integration with DataContext.
  */
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Terminal, Plug, PlugZap, Send, Trash2, Copy, AlertCircle, CheckCircle2, Info } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Terminal, Plug, PlugZap, Send, Trash2, Copy, AlertCircle, CheckCircle2, Info, Download, Loader2 } from 'lucide-react';
+import { useData } from '../context/DataContext';
 
 const BAUD_RATES = [115200, 57600, 38400, 19200];
 
-// ─────────────────────────────────────────────────────────────────────────────
-// WebSerial helpers
-// ─────────────────────────────────────────────────────────────────────────────
-const isSupported = () => 'serial' in navigator;
+const isSupported = () => typeof navigator !== 'undefined' && 'serial' in navigator;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Log entry component
@@ -44,6 +46,9 @@ function LogLine({ entry }) {
 // Main Page
 // ─────────────────────────────────────────────────────────────────────────────
 export default function SerialCLIPage() {
+  const { loadCLI, cliParsed } = useData();
+  const navigate = useNavigate();
+
   const [connected,   setConnected]   = useState(false);
   const [connecting,  setConnecting]  = useState(false);
   const [log,         setLog]         = useState([]);
@@ -51,12 +56,17 @@ export default function SerialCLIPage() {
   const [baudRate,    setBaudRate]    = useState(115200);
   const [pasteText,   setPasteText]   = useState('');
   const [showPaste,   setShowPaste]   = useState(false);
+  const [capturing,   setCapturing]   = useState(false);
 
-  const portRef      = useRef(null);
-  const readerRef    = useRef(null);
-  const writerRef    = useRef(null);
-  const logEndRef    = useRef(null);
-  const keepReadRef  = useRef(false);
+  const portRef         = useRef(null);
+  const readerRef       = useRef(null);
+  const writerRef       = useRef(null);
+  const logEndRef       = useRef(null);
+  const keepReadRef     = useRef(false);
+  const lineBufferRef   = useRef('');
+  const historyRef      = useRef([]);
+  const historyIdxRef   = useRef(-1);
+  const captureBufRef   = useRef('');
 
   useEffect(() => {
     logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -84,7 +94,19 @@ export default function SerialCLIPage() {
 
       // Start reading
       keepReadRef.current = true;
+      lineBufferRef.current = '';
       readLoop(port);
+
+      // Auto-enter CLI mode after a short delay
+      setTimeout(async () => {
+        try {
+          addLog('Entering CLI mode…', 'system');
+          const encoder = new TextEncoder();
+          const writer = port.writable.getWriter();
+          await writer.write(encoder.encode('#\n'));
+          writer.releaseLock();
+        } catch { /* ignore if port closed */ }
+      }, 300);
     } catch (err) {
       addLog(`Connection failed: ${err.message}`, 'error');
     } finally {
@@ -92,7 +114,7 @@ export default function SerialCLIPage() {
     }
   }
 
-  // ── Read loop ────────────────────────────────────────────────────────────
+  // ── Read loop (line-buffered) ──────────────────────────────────────────
   async function readLoop(port) {
     const decoder = new TextDecoder();
     try {
@@ -103,8 +125,25 @@ export default function SerialCLIPage() {
           while (true) {
             const { value, done } = await reader.read();
             if (done) break;
-            const text = decoder.decode(value);
-            addLog(text, 'recv');
+            const chunk = decoder.decode(value, { stream: true });
+
+            // Accumulate into line buffer
+            lineBufferRef.current += chunk;
+
+            // Also accumulate in capture buffer if capturing
+            if (capturing || captureBufRef.current !== '') {
+              captureBufRef.current += chunk;
+            }
+
+            // Split into complete lines
+            const parts = lineBufferRef.current.split('\n');
+            // Keep the last (possibly incomplete) part in the buffer
+            lineBufferRef.current = parts.pop() || '';
+
+            for (const part of parts) {
+              const line = part.replace(/\r$/, '');
+              if (line) addLog(line, 'recv');
+            }
           }
         } catch (err) {
           if (keepReadRef.current) addLog(`Read error: ${err.message}`, 'error');
@@ -126,6 +165,7 @@ export default function SerialCLIPage() {
     portRef.current   = null;
     readerRef.current = null;
     writerRef.current = null;
+    lineBufferRef.current = '';
     setConnected(false);
     addLog('Disconnected.', 'system');
   }
@@ -153,6 +193,9 @@ export default function SerialCLIPage() {
   function handleSend() {
     const cmd = inputText.trim();
     if (!cmd) return;
+    // Add to history
+    historyRef.current.push(cmd);
+    historyIdxRef.current = -1;
     sendCommand(cmd);
     setInputText('');
   }
@@ -169,8 +212,78 @@ export default function SerialCLIPage() {
     addLog('All commands sent.', 'success');
   }
 
+  // ── Import to Analysis ──────────────────────────────────────────────────
+  async function handleImportToAnalysis() {
+    if (!connected) { addLog('Connect first.', 'error'); return; }
+    setCapturing(true);
+    captureBufRef.current = '';
+    addLog('Reading FC config (dump all)…', 'system');
+
+    await sendCommand('dump all');
+
+    // Wait for the response to complete (detect CLI prompt or timeout)
+    const deadline = Date.now() + 15000;
+    await new Promise((resolve) => {
+      const check = setInterval(() => {
+        const buf = captureBufRef.current;
+        const trimmed = buf.trimEnd();
+        const promptDetected =
+          trimmed.endsWith('\n#') || trimmed.endsWith('\r#') ||
+          (buf.endsWith('# ') && buf.substring(buf.lastIndexOf('\n') + 1).trim() === '#');
+
+        if (promptDetected || Date.now() > deadline) {
+          clearInterval(check);
+          resolve();
+        }
+      }, 200);
+    });
+
+    const captured = captureBufRef.current.replace(/\r/g, '');
+    captureBufRef.current = '';
+    setCapturing(false);
+
+    if (captured.length < 50) {
+      addLog('No data received. Make sure the FC is in CLI mode.', 'error');
+      return;
+    }
+
+    const result = loadCLI(captured);
+    if (result) {
+      addLog(`Imported to analysis: ${result.craftName || 'Quad'} — BF ${result.version || '?'} (${Object.keys(result.master).length} settings)`, 'success');
+    } else {
+      addLog('Failed to parse CLI dump. Try again.', 'error');
+    }
+  }
+
   function handleKeyDown(e) {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+      return;
+    }
+    // Command history navigation
+    const history = historyRef.current;
+    if (history.length === 0) return;
+
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      const idx = historyIdxRef.current;
+      const newIdx = idx < 0 ? history.length - 1 : Math.max(0, idx - 1);
+      historyIdxRef.current = newIdx;
+      setInputText(history[newIdx]);
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const idx = historyIdxRef.current;
+      if (idx < 0) return;
+      const newIdx = idx + 1;
+      if (newIdx >= history.length) {
+        historyIdxRef.current = -1;
+        setInputText('');
+      } else {
+        historyIdxRef.current = newIdx;
+        setInputText(history[newIdx]);
+      }
+    }
   }
 
   const browserUnsupported = !isSupported();
@@ -207,7 +320,7 @@ export default function SerialCLIPage() {
             <li>Close Betaflight Configurator (it locks the port)</li>
             <li>Plug in your FC via USB</li>
             <li>Click <strong className="text-blue-200">Connect</strong> and select the FC COM port (e.g. STM32 Virtual COM)</li>
-            <li>Type CLI commands, or paste a full preset CLI block below</li>
+            <li>CLI mode is entered automatically — type commands or use Quick Commands</li>
           </ol>
         </div>
       </div>
@@ -231,6 +344,17 @@ export default function SerialCLIPage() {
             {BAUD_RATES.map(b => <option key={b} value={b}>{b} baud</option>)}
           </select>
         )}
+        {/* Import to Analysis */}
+        {connected && (
+          <button
+            onClick={handleImportToAnalysis}
+            disabled={capturing}
+            className="flex items-center gap-1.5 text-xs bg-violet-800 hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed text-violet-100 px-3 py-1.5 rounded-lg transition-colors font-medium"
+          >
+            {capturing ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
+            {capturing ? 'Reading…' : 'Import to Analysis'}
+          </button>
+        )}
         {/* Connect / Disconnect */}
         {connected ? (
           <button
@@ -250,6 +374,22 @@ export default function SerialCLIPage() {
           </button>
         )}
       </div>
+
+      {/* ── Import success banner ── */}
+      {cliParsed && (
+        <div className="flex items-center justify-between bg-emerald-900/20 border border-emerald-700/40 rounded-xl px-4 py-3">
+          <div className="flex items-center gap-2 text-sm text-emerald-300">
+            <CheckCircle2 size={16} />
+            <span>CLI data loaded: <strong>{cliParsed.craftName || 'Quad'}</strong> — BF {cliParsed.version || '?'}</span>
+          </div>
+          <button
+            onClick={() => navigate('/')}
+            className="text-xs bg-emerald-800 hover:bg-emerald-700 text-emerald-100 px-3 py-1.5 rounded-lg transition-colors font-medium"
+          >
+            Go to Dashboard
+          </button>
+        </div>
+      )}
 
       {/* ── Terminal output ── */}
       <div className="bg-gray-950 border border-gray-800 rounded-xl overflow-hidden">
@@ -275,7 +415,7 @@ export default function SerialCLIPage() {
             </button>
           </div>
         </div>
-        <div className="p-3 h-72 overflow-y-auto space-y-0.5">
+        <div className="p-3 h-[28rem] overflow-y-auto space-y-0.5">
           {log.length === 0 ? (
             <p className="text-gray-600 text-xs font-mono">Waiting for connection…</p>
           ) : (
@@ -293,7 +433,7 @@ export default function SerialCLIPage() {
           onChange={e => setInputText(e.target.value)}
           onKeyDown={handleKeyDown}
           disabled={!connected}
-          placeholder={connected ? 'Type a command and press Enter…' : 'Connect first…'}
+          placeholder={connected ? 'Type a command and press Enter… (↑↓ for history)' : 'Connect first…'}
           className="flex-1 bg-gray-800 border border-gray-700 disabled:opacity-40 text-gray-100 text-sm rounded-xl px-4 py-2.5 font-mono focus:outline-none focus:border-violet-500 placeholder-gray-600"
         />
         <button
@@ -353,7 +493,7 @@ export default function SerialCLIPage() {
       <div className="bg-gray-800/60 border border-gray-700 rounded-xl px-4 py-3">
         <p className="text-xs text-gray-400 mb-2.5 font-medium">Quick Commands</p>
         <div className="flex flex-wrap gap-2">
-          {['version', 'status', 'dump all', 'get p_roll', 'get d_roll', 'save', 'defaults'].map(cmd => (
+          {['version', 'status', 'diff all', 'dump all', 'get p_roll', 'get d_roll', 'save', 'defaults'].map(cmd => (
             <button
               key={cmd}
               onClick={() => sendCommand(cmd)}

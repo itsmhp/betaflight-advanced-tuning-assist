@@ -1,7 +1,8 @@
 import { useState, useCallback, useRef } from 'react';
 import { useData } from '../../context/DataContext';
 import { useLang } from '../../i18n/LangContext';
-import { Upload, FileText, X, Check, Terminal, Database } from 'lucide-react';
+import { Upload, FileText, X, Check, Terminal, Database, Usb, Loader2 } from 'lucide-react';
+import { isSerialSupported, connectToFC, enterCLIMode, sendAndCapture, disconnectFC } from '../../lib/serialHelper';
 
 export default function FileUpload({ compact = false }) {
   const { cliParsed, bbParsed, loadCLI, loadBlackbox, errors } = useData();
@@ -10,6 +11,8 @@ export default function FileUpload({ compact = false }) {
   const [bbDrag, setBbDrag] = useState(false);
   const [cliText, setCliText] = useState('');
   const [showPaste, setShowPaste] = useState(false);
+  const [serialStatus, setSerialStatus] = useState(null); // null | 'connecting' | 'reading' | 'done' | 'error'
+  const [serialError, setSerialError] = useState('');
   const cliRef = useRef(null);
   const bbRef = useRef(null);
 
@@ -44,8 +47,41 @@ export default function FileUpload({ compact = false }) {
     setter(true);
   };
 
+  // ── Read from FC via WebSerial ──────────────────────────────────────────
+  async function handleReadFromFC() {
+    let port = null;
+    try {
+      setSerialStatus('connecting');
+      setSerialError('');
+      port = await connectToFC(115200);
+
+      setSerialStatus('reading');
+      await enterCLIMode(port, 5000);
+      const dump = await sendAndCapture(port, 'dump all', 15000);
+
+      if (dump.length < 50) {
+        throw new Error('No data received from FC. Make sure the FC is powered and connected.');
+      }
+
+      const result = loadCLI(dump);
+      if (!result) throw new Error('Failed to parse CLI dump.');
+
+      setSerialStatus('done');
+      // Auto-clear success status after a few seconds
+      setTimeout(() => setSerialStatus(null), 4000);
+    } catch (err) {
+      setSerialError(err.message);
+      setSerialStatus('error');
+    } finally {
+      if (port) {
+        try { await disconnectFC(port); } catch { /* ignore */ }
+      }
+    }
+  }
+
   const cliError = errors.find(e => e.source === 'cli');
   const bbError = errors.find(e => e.source === 'bb');
+  const showSerial = isSerialSupported();
 
   return (
     <div className={`grid ${compact ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2'} gap-4`}>
@@ -80,14 +116,47 @@ export default function FileUpload({ compact = false }) {
           <input ref={cliRef} type="file" className="hidden" accept=".txt,.log,.cli"
             onChange={(e) => e.target.files[0] && handleCliFile(e.target.files[0])} />
         </div>
+
+        {/* Action buttons below drop zone */}
         {!cliParsed && (
-          <button
-            className="text-xs text-violet-400 hover:text-violet-300 mt-2 transition-colors"
-            onClick={() => setShowPaste(!showPaste)}
-          >
-            {showPaste ? t('hidePaste') : t('pasteCli')}
-          </button>
+          <div className="flex items-center gap-3 mt-2">
+            <button
+              className="text-xs text-violet-400 hover:text-violet-300 transition-colors"
+              onClick={() => setShowPaste(!showPaste)}
+            >
+              {showPaste ? t('hidePaste') : t('pasteCli')}
+            </button>
+
+            {showSerial && (
+              <>
+                <span className="text-gray-700 text-xs">|</span>
+                <button
+                  className="flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 transition-colors disabled:opacity-40"
+                  onClick={handleReadFromFC}
+                  disabled={serialStatus === 'connecting' || serialStatus === 'reading'}
+                >
+                  {serialStatus === 'connecting' || serialStatus === 'reading' ? (
+                    <Loader2 size={12} className="animate-spin" />
+                  ) : (
+                    <Usb size={12} />
+                  )}
+                  {serialStatus === 'connecting' ? 'Connecting…'
+                    : serialStatus === 'reading' ? 'Reading FC…'
+                    : 'Read from FC'}
+                </button>
+              </>
+            )}
+          </div>
         )}
+
+        {/* Serial success/error */}
+        {serialStatus === 'done' && (
+          <p className="text-xs text-emerald-400 mt-1">FC config imported successfully.</p>
+        )}
+        {serialStatus === 'error' && (
+          <p className="text-xs text-red-400 mt-1">{serialError}</p>
+        )}
+
         {showPaste && !cliParsed && (
           <div className="mt-2">
             <textarea

@@ -1,6 +1,6 @@
 /**
  * analyzeAll.js
- * Orchestrates all 15 analyzers and returns summary results with scores for 
+ * Orchestrates all 16 analyzers and returns summary results with scores for 
  * the Dashboard "Analyze All" flow.
  */
 import { analyzeAdvancedPidHealth } from './analyzers/advancedPidHealth';
@@ -18,6 +18,7 @@ import { analyzeTPA } from './analyzers/tpaAnalyzer';
 import { analyzeITermBuildup } from './analyzers/itermBuildup';
 import { analyzeThrottleAxis } from './analyzers/throttleAxis';
 import { analyzePropWash } from './analyzers/propWash';
+import { analyzeFreestyle } from './analyzers/freestyleAnalyzer';
 
 /** 
  * Tool definitions — each has a key, route, label key, and required data.
@@ -40,6 +41,7 @@ export const TOOL_DEFS = [
   { key: 'pid_contribution',route: '/pid-contribution', labelKey: 'tool_pid_contribution',needsCli: false, needsBb: true,  dataHint: 'BBL with P/I/D term data' },
   { key: 'stick_analyzer',  route: '/stick-analyzer',   labelKey: 'tool_stick_analyzer',  needsCli: false, needsBb: true,  dataHint: 'BBL with RC setpoint data' },
   { key: 'dynamic_idle',    route: '/dynamic-idle',     labelKey: 'tool_dynamic_idle',    needsCli: true,  needsBb: true,  dataHint: 'CLI + BBL with motor RPM' },
+  { key: 'freestyle_analysis', route: '/freestyle',   labelKey: 'tool_freestyle_analysis', needsCli: false, needsBb: true, dataHint: 'BBL with gyro + RC data — fly freestyle!' },
 ];
 
 /**
@@ -103,6 +105,7 @@ const RUNNERS = {
   pid_contribution: (bb)              => analyzePIDContribution(bb),
   stick_analyzer:   (bb)              => analyzeStickMovement(bb),
   dynamic_idle:     (bb, cli, params) => analyzeDynamicIdle(bb, params),
+  freestyle_analysis: (bb)            => analyzeFreestyle(bb),
 };
 
 /**

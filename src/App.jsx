@@ -23,6 +23,7 @@ import SerialCLIPage from './pages/SerialCLIPage';
 import TuneWorkflowPage from './pages/TuneWorkflowPage';
 import LogComparisonPage from './pages/LogComparisonPage';
 import RatesPage from './pages/RatesPage';
+import FreestyleAnalysisPage from './pages/FreestyleAnalysisPage';
 
 function App() {
   return (
@@ -47,6 +48,7 @@ function App() {
             <Route path="/pid-contribution" element={<PIDContributionPage />} />
             <Route path="/stick-analyzer" element={<StickAnalyzerPage />} />
             <Route path="/dynamic-idle" element={<DynamicIdlePage />} />
+            <Route path="/freestyle" element={<FreestyleAnalysisPage />} />
             <Route path="/presets" element={<PresetsPage />} />
             <Route path="/rates" element={<RatesPage />} />
             <Route path="/my-drone" element={<DroneProfilePage />} />

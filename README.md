@@ -24,7 +24,7 @@ Upload your blackbox log and CLI dump to get guided, evidence-based recommendati
 - [Quick Start](#quick-start)
 - [Running the App](#running-the-app)
 - [Features Overview](#features-overview)
-  - [15 Blackbox Analysis Tools](#15-blackbox-analysis-tools)
+  - [16 Blackbox Analysis Tools](#15-blackbox-analysis-tools)
   - [Sequential Tuning Pipeline](#sequential-tuning-pipeline)
   - [Rate Profiles Library](#rate-profiles-library)
   - [Smart Presets System](#smart-presets-system)
@@ -50,7 +50,7 @@ Upload your blackbox log and CLI dump to get guided, evidence-based recommendati
 | Browser-based | ✅ | ❌ (MATLAB) | ✅ | ✅ |
 | Desktop app (Electron) | ✅ | ✅ | ❌ | ✅ |
 | Sequential gate-locked workflow | ✅ | ❌ | ❌ | ❌ |
-| 15 specialized analyzers | ✅ | ❌ | ❌ | ❌ |
+| 16 specialized analyzers | ✅ | ❌ | ❌ | ❌ |
 | WebSerial CLI terminal | ✅ | ❌ | ❌ | ❌ |
 | Rate library (50+ pilots) | ✅ | ❌ | ❌ | ❌ |
 | Side-by-side rate comparison | ✅ | ❌ | ❌ | ❌ |
@@ -119,7 +119,7 @@ Pre-built binaries are available on the [Releases page](https://github.com/itsmh
 
 ## Features Overview
 
-### 15 Blackbox Analysis Tools
+### 16 Blackbox Analysis Tools
 
 Every tool outputs a **health score (0–100)**, a **severity level** (Excellent / Good / Warning / Critical), **actionable recommendations**, and **copy-ready CLI commands**.
 
@@ -140,6 +140,7 @@ Every tool outputs a **health score (0–100)**, a **severity level** (Excellent
 | 13 | **PID Contribution** | P/I/D/F term ratios per axis, D-term dominance warnings |
 | 14 | **PID Multiplier** | Scale all PID values by 0.1×–2.0× with live preview (no blackbox required) |
 | 15 | **Dynamic Idle** | Idle segment detection, desync rate %, eRPM and transition analysis |
+| 16 | **Freestyle Analysis** | Left/right balance, trick detection (rolls, flips, split-S, powerloops), training recommendations |
 
 ### Sequential Tuning Pipeline
 
@@ -200,7 +201,7 @@ Stage 7: Verification
 
 Upload two blackbox logs (before/after a tuning change) and get:
 
-- Side-by-side scores across all 15 analyzers.
+- Side-by-side scores across all 16 analyzers.
 - Delta indicators showing improvement or regression per tool.
 - Aggregate improvement score.
 
@@ -237,7 +238,7 @@ The UI is fully translated into 4 languages — switch at any time from the side
 
 2. Load Data
    → Upload CLI dump (dump all) — extracts current PID/filter/rate settings
-   → Upload blackbox log (.bbl or .csv) — enables all 15 analyzers
+   → Upload blackbox log (.bbl or .csv) — enables all 16 analyzers
 
 3. Run Analysis
    → Dashboard: runs all analyzers in parallel, shows overall health score
@@ -274,7 +275,7 @@ betaflight-advanced-tuning-assist/
 │   ├── main.jsx          # App entry — React + Router
 │   ├── App.jsx           # Route definitions
 │   ├── index.css         # Global styles (Tailwind + custom gradients)
-│   ├── pages/            # 22 page components (one per tool/feature)
+│   ├── pages/            # 23 page components (one per tool/feature)
 │   ├── components/
 │   │   ├── Sidebar.jsx           # Main navigation, drone switcher, lang selector
 │   │   ├── CLICommandsPanel.jsx  # Renders CLI commands with severity badges
@@ -296,7 +297,7 @@ betaflight-advanced-tuning-assist/
 │   │   ├── LangContext.jsx        # Language context + useLang() hook
 │   │   └── translations.js        # EN / ID / ES / DE strings
 │   └── lib/
-│       ├── analyzeAll.js          # Orchestrates all 15 analyzers in parallel
+│       ├── analyzeAll.js          # Orchestrates all 16 analyzers in parallel
 │       ├── tuningPipeline.js      # 7-stage gate-locked state machine
 │       ├── presets.js             # 36 base presets (9 sizes × 4 levels)
 │       ├── smartPresets.js        # Blackbox-aware preset adjustment engine

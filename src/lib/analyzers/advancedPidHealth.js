@@ -8,12 +8,13 @@ export function analyzeAdvancedPidHealth(blackboxData, cliParams) {
   const axes = ['roll', 'pitch', 'yaw'];
   const axisResults = {};
 
-  for (const axis of axes) {
-    const pTerm = data.map(r => r[`${axis}-P`] ?? r[`axisP-${axis}`] ?? 0);
-    const iTerm = data.map(r => r[`${axis}-I`] ?? r[`axisI-${axis}`] ?? 0);
-    const dTerm = data.map(r => r[`${axis}-D`] ?? r[`axisD-${axis}`] ?? 0);
-    const gyro = data.map(r => r[`${axis}-gyro`] ?? r[`gyroADC-${axis}`] ?? 0);
-    const setpoint = data.map(r => r[`${axis}-setpoint`] ?? r[`setpoint-${axis}`] ?? 0);
+  for (let ai = 0; ai < axes.length; ai++) {
+    const axis = axes[ai];
+    const pTerm = data.map(r => r[`${axis}-pterm`] ?? r[`axisP[${ai}]`] ?? 0);
+    const iTerm = data.map(r => r[`${axis}-iterm`] ?? r[`axisI[${ai}]`] ?? 0);
+    const dTerm = data.map(r => r[`${axis}-dterm`] ?? r[`axisD[${ai}]`] ?? 0);
+    const gyro = data.map(r => r[`${axis}-gyro`] ?? r[`gyroADC[${ai}]`] ?? 0);
+    const setpoint = data.map(r => r[`${axis}-setpoint`] ?? r[`setpoint[${ai}]`] ?? 0);
 
     // Error = setpoint - gyro
     const error = setpoint.map((s, i) => s - gyro[i]);

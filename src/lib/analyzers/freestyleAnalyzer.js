@@ -16,7 +16,7 @@ const DOWNSAMPLE      = 20;    // process every Nth sample (~100Hz at 2kHz)
 // ── Main analyzer ──────────────────────────────────────────────────────────────
 export function analyzeFreestyle(blackboxData) {
   const { data, sampleRate = 2000 } = blackboxData;
-  if (!data || data.length < 500) {
+  if (!data || data.length < 100) {
     return { status: 'Insufficient Data', message: 'Not enough flight data for freestyle analysis.' };
   }
 

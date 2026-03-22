@@ -11,33 +11,41 @@ export function decodeBBL(arrayBuffer) {
   let dataStart = 0;
   let headerText = '';
   
-  for (let i = 0; i < bytes.length; i++) {
-    if (bytes[i] === 0x48 && (i === 0 || bytes[i - 1] === 0x0A)) { // 'H' at line start
-      let line = '';
-      let j = i;
-      while (j < bytes.length && bytes[j] !== 0x0A) {
-        line += String.fromCharCode(bytes[j]);
-        j++;
-      }
-      line = line.trim();
-      
-      if (line.startsWith('H ')) {
-        const match = line.match(/^H\s+(.+?):(.*)/);
-        if (match) {
-          const key = match[1].trim();
-          const val = match[2].trim();
-          headers[key] = val;
-          
-          // Parse field definitions
-          const fieldMatch = key.match(/^Field ([IPS]) (.+)/);
-          if (fieldMatch) {
-            const frameType = fieldMatch[1];
-            const prop = fieldMatch[2];
-            fieldDefs[frameType][prop] = val.split(',').map(s => s.trim());
-          }
+  // Scan headers line-by-line; stop at the first non-header byte
+  // so we don't skip past data to headers in later log sessions.
+  {
+    let i = 0;
+    while (i < bytes.length) {
+      if (bytes[i] === 0x48) { // 'H' — potential header line
+        let line = '';
+        let j = i;
+        while (j < bytes.length && bytes[j] !== 0x0A) {
+          line += String.fromCharCode(bytes[j]);
+          j++;
         }
-        dataStart = j + 1;
+        line = line.trim();
+
+        if (line.startsWith('H ')) {
+          const match = line.match(/^H\s+(.+?):(.*)/);
+          if (match) {
+            const key = match[1].trim();
+            const val = match[2].trim();
+            headers[key] = val;
+
+            const fieldMatch = key.match(/^Field ([IPS]) (.+)/);
+            if (fieldMatch) {
+              const frameType = fieldMatch[1];
+              const prop = fieldMatch[2];
+              fieldDefs[frameType][prop] = val.split(',').map(s => s.trim());
+            }
+          }
+          dataStart = j + 1;
+          i = j + 1;
+          continue;
+        }
       }
+      // Non-header byte found — headers section is over
+      break;
     }
   }
 
@@ -191,6 +199,11 @@ export function decodeBBL(arrayBuffer) {
           remaining--;
           idx++;
           break;
+        case 2: // NEG_14BIT — negated signed VB
+          values.push(-readSignedVB());
+          remaining--;
+          idx++;
+          break;
         case 3: // TAG2_3SVARIABLE (groups of 3)
         case 6: { // TAG2_3S32
           const group = readTag2_3S32();
@@ -227,6 +240,15 @@ export function decodeBBL(arrayBuffer) {
         case 4: { // TAG8_8SVB
           const group = readTag8_8SVB();
           for (let g = 0; g < group.length && remaining > 0; g++) {
+            values.push(group[g]);
+            remaining--;
+            idx++;
+          }
+          break;
+        }
+        case 5: { // TAG2_3S32 (motor variant)
+          const group = readTag2_3S32();
+          for (let g = 0; g < 3 && remaining > 0; g++) {
             values.push(group[g]);
             remaining--;
             idx++;
@@ -271,7 +293,7 @@ export function decodeBBL(arrayBuffer) {
   const maxFrames = 500000; // Safety limit
   let frameCount = 0;
   let errorCount = 0;
-  const maxErrors = 1000;
+  const maxErrors = 500000; // High limit for multi-session BBL files
 
   while (pos < bytes.length && frameCount < maxFrames) {
     const frameType = readByte();
@@ -299,6 +321,7 @@ export function decodeBBL(arrayBuffer) {
         if (row.time !== undefined) row.time_seconds = row.time / 1e6;
         data.push(row);
         frameCount++;
+        readByte(); // consume XOR checksum byte
 
       } else if (frameType === 0x50) { // 'P' frame
         if (!prevPFrame) { errorCount++; continue; }
@@ -320,35 +343,79 @@ export function decodeBBL(arrayBuffer) {
         if (row.time !== undefined) row.time_seconds = row.time / 1e6;
         data.push(row);
         frameCount++;
+        readByte(); // consume XOR checksum byte
 
       } else if (frameType === 0x45) { // 'E' event frame
-        // Skip event frames - read event type and skip
         const eventType = readByte();
-        if (eventType === 0xFF) break; // Log end
-        // Skip event data based on type
-        if (eventType === 13 || eventType === 14) { // flight mode, disarm
-          readUnsignedVB();
-          readUnsignedVB();
-        } else if (eventType === 15) { // inflight adjustment
-          readUnsignedVB();
-          readSignedVB();
-        } else {
-          // Unknown event - try to skip conservatively
-          readUnsignedVB();
+        if (eventType === 0xFF) {
+          // Log session end — consume checksum then skip to next session
+          readByte(); // checksum
+          while (pos < bytes.length) {
+            const b = bytes[pos];
+            if (b === 0x48) { // 'H' — new header section, skip header lines
+              while (pos < bytes.length && bytes[pos] === 0x48) {
+                while (pos < bytes.length && bytes[pos] !== 0x0A) pos++;
+                pos++;
+              }
+              break;
+            }
+            if (b === 0x49 || b === 0x50 || b === 0x45 || b === 0x53) break;
+            pos++;
+          }
+          continue;
         }
+        // Skip event payload based on type
+        switch (eventType) {
+          case 0: // SYNC_BEEP
+            readUnsignedVB();
+            break;
+          case 10: // LOG_RESUME
+            readUnsignedVB();
+            readUnsignedVB();
+            break;
+          case 13: // FLIGHT_MODE
+          case 14: // DISARM
+            readUnsignedVB();
+            readUnsignedVB();
+            break;
+          case 15: // INFLIGHT_ADJUSTMENT
+            readUnsignedVB();
+            readSignedVB();
+            break;
+          case 30: // CUSTOM_BLANK — no payload
+            break;
+          default:
+            // Unknown event — read one VB as best guess
+            readUnsignedVB();
+            break;
+        }
+        readByte(); // consume XOR checksum byte
       } else if (frameType === 0x53) { // 'S' slow frame
         const sFieldCount = fieldDefs.S.name?.length ?? 0;
+        const sFieldEncoding = (fieldDefs.S.encoding || []).map(Number);
         if (sFieldCount > 0) {
-          for (let i = 0; i < sFieldCount; i++) readUnsignedVB();
+          decodeFieldGroup(sFieldEncoding, sFieldCount, 0);
         }
+        readByte(); // consume XOR checksum byte
       } else {
-        // Unknown byte - might be corrupted, try to recover
+        // Unknown byte — scan forward to next valid frame marker (resync)
         errorCount++;
         if (errorCount > maxErrors) break;
+        while (pos < bytes.length) {
+          const next = bytes[pos];
+          if (next === 0x49 || next === 0x50 || next === 0x45 || next === 0x53 || next === 0x48) break;
+          pos++;
+        }
       }
     } catch (e) {
       errorCount++;
       if (errorCount > maxErrors) break;
+      // Resync after parse error
+      while (pos < bytes.length) {
+        const next = bytes[pos];
+        if (next === 0x49 || next === 0x50 || next === 0x45 || next === 0x53 || next === 0x48) break;
+        pos++;
+      }
     }
   }
 

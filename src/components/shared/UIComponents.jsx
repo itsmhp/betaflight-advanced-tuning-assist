@@ -1,17 +1,17 @@
 import { healthColor, healthBadge } from '../../lib/utils';
 
 export function HealthBadge({ level }) {
-  const color = healthColor(level);
-  const label = healthBadge(level);
   const colorClasses = {
-    green: 'badge-good',
-    yellow: 'badge-warning',
-    red: 'badge-critical',
-    gray: 'bg-gray-700 text-gray-300'
+    Excellent: 'bg-emerald-900/60 text-emerald-300 border border-emerald-700/50',
+    Good:      'bg-green-900/60 text-green-300 border border-green-700/50',
+    Fair:      'bg-yellow-900/60 text-yellow-300 border border-yellow-700/50',
+    Warning:   'bg-yellow-900/60 text-yellow-300 border border-yellow-700/50',
+    Poor:      'bg-red-900/60 text-red-300 border border-red-700/50',
   };
+  const fallback = 'bg-gray-700 text-gray-300';
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${colorClasses[color] || colorClasses.gray}`}>
-      {label || level}
+    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${colorClasses[level] || fallback}`}>
+      {level}
     </span>
   );
 }

@@ -53,10 +53,10 @@ export function analyzeFreestyle(blackboxData) {
   const score = computeBalanceScore(balance, trickSummary);
 
   // ── 5. Health Level ────────────────────────────────────────────────────────
-  let healthLevel = 'excellent';
-  if (score < 85) healthLevel = 'good';
-  if (score < 65) healthLevel = 'warning';
-  if (score < 40) healthLevel = 'critical';
+  let healthLevel = 'Excellent';
+  if (score < 85) healthLevel = 'Good';
+  if (score < 65) healthLevel = 'Fair';
+  if (score < 40) healthLevel = 'Poor';
 
   // ── 6. Recommendations ─────────────────────────────────────────────────────
   const recommendations = generateRecommendations(balance, trickSummary, score);

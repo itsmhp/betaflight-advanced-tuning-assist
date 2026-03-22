@@ -442,7 +442,7 @@ export default function Dashboard() {
       {!summary && (
         <>
           <h3 className="text-sm font-semibold text-gray-300 mb-2">
-            {t('toolsGrid')}  <span className="text-violet-400">15</span>
+            {t('toolsGrid')}  <span className="text-violet-400">16</span>
           </h3>
           <p className="text-xs text-gray-500 mb-3">{t('toolsGridSub')}</p>
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">

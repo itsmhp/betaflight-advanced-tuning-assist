@@ -393,7 +393,7 @@ export default function FreestyleAnalysisPage() {
             {recommendations.map((rec, i) => (
               <li key={i} className="flex items-start gap-2 text-xs text-gray-400">
                 <span className="text-orange-400 mt-0.5 shrink-0">•</span>
-                <span>{t(rec.key) || rec.fallback}</span>
+                <span>{rec.fallback}</span>
               </li>
             ))}
           </ul>

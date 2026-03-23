@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLang } from '../i18n/LangContext';
 import FileUpload from '../components/shared/FileUpload';
 import FlightTrimControl from '../components/shared/FlightTrimControl';
-import { runAllAnalyzers, computeOverallScore, aggregateResults, renderCLI, TOOL_DEFS } from '../lib/analyzeAll';
+import { TOOL_DEFS } from '../lib/analyzeAll';
 import { generateNoiseHeatmap } from '../lib/analyzers/noiseProfile';
 import NoiseHeatmap from '../components/NoiseHeatmap';
 import {
@@ -77,30 +77,60 @@ export default function Dashboard() {
   const [heatmapData, setHeatmapData]   = useState(null);
   const [heatmapLoading, setHeatmapLoading] = useState(false);
   const cliRef = useRef(null);
+  const workerRef = useRef(null);
 
   const hasAnyData = !!(cliParsed || bbParsed);
 
-  const handleAnalyze = useCallback(async () => {
+  const handleAnalyze = useCallback(() => {
     if (!hasAnyData || analyzing) return;
     setAnalyzing(true);
     setSummary(null);
     setAggregated(null);
     setCliText(null);
-    setProgress({ step:0, total:0, currentKey:null });
-    const dataForAnalysis = bbParsedTrimmed || bbParsed;
-    const results = await runAllAnalyzers(
-      dataForAnalysis, cliParsed, tuningParams,
-      (step, total, key) => setProgress({ step, total, currentKey:key })
+    setProgress({ step: 0, total: 0, currentKey: null });
+
+    // Terminate any in-flight worker from a previous analysis
+    workerRef.current?.terminate();
+
+    const worker = new Worker(
+      new URL('../lib/analyzerWorker.js', import.meta.url),
+      { type: 'module' }
     );
-    const score = computeOverallScore(results);
-    const lvl = score==null?'unknown':score>=85?'excellent':score>=65?'good':score>=40?'warning':'critical';
-    setOverallScore(score);
-    setOverallLevel(lvl);
-    setSummary(results);
-    const agg = aggregateResults(results);
-    setAggregated(agg);
-    setCliText(renderCLI(agg.allCliChanges, cliParsed ? cliParsed.activeProfile ?? 0 : 0));
-    setAnalyzing(false);
+    workerRef.current = worker;
+
+    worker.onmessage = (e) => {
+      const { type, step, total, key, results, score, agg, cliText: ct, message } = e.data;
+
+      if (type === 'progress') {
+        setProgress({ step, total, currentKey: key });
+
+      } else if (type === 'done') {
+        const lvl = score == null ? 'unknown'
+          : score >= 85 ? 'excellent'
+          : score >= 65 ? 'good'
+          : score >= 40 ? 'warning' : 'critical';
+        setOverallScore(score);
+        setOverallLevel(lvl);
+        setSummary(results);
+        setAggregated(agg);
+        setCliText(ct);
+        setAnalyzing(false);
+        worker.terminate();
+
+      } else if (type === 'error') {
+        console.error('Analyzer worker error:', message);
+        setAnalyzing(false);
+        worker.terminate();
+      }
+    };
+
+    worker.onerror = (err) => {
+      console.error('Worker error:', err);
+      setAnalyzing(false);
+    };
+
+    const dataForAnalysis = bbParsedTrimmed || bbParsed;
+    worker.postMessage({ bbParsed: dataForAnalysis, cliParsed, tuningParams });
   }, [hasAnyData, analyzing, bbParsed, bbParsedTrimmed, cliParsed, tuningParams]);
 
   const handleCopy = useCallback(() => {

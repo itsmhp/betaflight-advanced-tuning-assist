@@ -1,7 +1,7 @@
 // ─── 4. PID Contribution Analyzer ───
-import { mean } from '../utils.js';
+import { mean, clamp } from '../utils.js';
 
-export function analyzePIDContribution(blackboxData) {
+export function analyzePIDContribution(blackboxData, cliParams) {
   const axes = ['roll', 'pitch', 'yaw'];
   const results = {};
 
@@ -41,19 +41,47 @@ export function analyzePIDContribution(blackboxData) {
     };
   }
 
-  // Overall diagnostics
+  // Overall diagnostics with exact CLI values
   const allDRatios = axes.map(a => results[a]?.dRatio ?? 0);
   const maxDRatio = Math.max(...allDRatios);
   
   let status = 'Healthy';
-  let recommendation = 'PID contribution ratios look balanced.';
-  if (maxDRatio > 40) {
-    status = 'D-Heavy';
-    recommendation = 'D-term contribution is very high. Consider reducing D gains or adding more filtering.';
-  } else if (maxDRatio > 30) {
-    status = 'D-Elevated';
-    recommendation = 'D-term is elevated. Monitor for noise amplification on motors.';
+  const recommendations = [];
+  const cliChanges = {};
+
+  if (maxDRatio > 30) {
+    status = maxDRatio > 40 ? 'D-Heavy' : 'D-Elevated';
+
+    for (const axis of axes) {
+      const r = results[axis];
+      if (!r || r.dRatio <= 30) continue;
+
+      const currentD = cliParams?.pid?.[axis]?.d ?? 35;
+      // Compute target D ratio ≈ 25%. Scale reduction proportional to excess.
+      const excess = r.dRatio - 25;
+      const reductionFactor = 1 - clamp(excess / 100, 0.05, 0.30); // 5-30% reduction
+      const suggestedD = clamp(Math.round(currentD * reductionFactor), 10, 120);
+
+      if (suggestedD !== currentD) {
+        cliChanges[`d_${axis}`] = suggestedD;
+        recommendations.push({
+          message: `${axis}: D-term contribution ${r.dRatio}% (target < 25%). Reduce D from ${currentD} → ${suggestedD}.`,
+          param: `d_${axis}`,
+          currentValue: currentD,
+          suggestedValue: suggestedD,
+          command: `set d_${axis} = ${suggestedD}`,
+          severity: r.dRatio > 40 ? 'warning' : 'info',
+        });
+      }
+    }
   }
 
-  return { axes: results, status, recommendation };
+  if (recommendations.length === 0) {
+    recommendations.push({
+      message: `PID contribution ratios are balanced (D max: ${maxDRatio}%).`,
+      severity: 'info',
+    });
+  }
+
+  return { axes: results, status, recommendations, cliChanges };
 }

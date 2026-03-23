@@ -9,6 +9,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Terminal, Plug, PlugZap, Send, Trash2, Copy, AlertCircle, CheckCircle2, Info, Download, Loader2 } from 'lucide-react';
 import { useData } from '../context/DataContext';
+import { useLang } from '../i18n/LangContext';
 
 const BAUD_RATES = [115200, 57600, 38400, 19200];
 
@@ -47,6 +48,7 @@ function LogLine({ entry }) {
 // ─────────────────────────────────────────────────────────────────────────────
 export default function SerialCLIPage() {
   const { loadCLI, cliParsed } = useData();
+  const { t } = useLang();
   const navigate = useNavigate();
 
   const [connected,   setConnected]   = useState(false);
@@ -296,7 +298,7 @@ export default function SerialCLIPage() {
         <Terminal size={22} className="text-green-400 shrink-0" />
         <div>
           <h1 className="text-xl font-bold text-white">CLI Terminal</h1>
-          <p className="text-sm text-gray-400">Direct Betaflight CLI via WebSerial · Chrome / Edge only</p>
+          <p className="text-sm text-gray-400">{t('subtitle_cli_terminal')}</p>
         </div>
       </div>
 
@@ -305,8 +307,8 @@ export default function SerialCLIPage() {
         <div className="flex items-start gap-3 bg-red-900/30 border border-red-700/50 rounded-xl p-4 text-sm text-red-200">
           <AlertCircle size={18} className="shrink-0 mt-0.5 text-red-400" />
           <div>
-            <p className="font-semibold text-red-300 mb-1">Web Serial API not supported</p>
-            <p>This feature requires Chrome 89+ or Edge 89+. Firefox and Safari do not support Web Serial.</p>
+            <p className="font-semibold text-red-300 mb-1">{t('error_no_webserial')}</p>
+            <p>{t('msg_no_webserial_support')}</p>
           </div>
         </div>
       )}
@@ -315,7 +317,7 @@ export default function SerialCLIPage() {
       <div className="flex items-start gap-3 bg-blue-900/20 border border-blue-800/40 rounded-xl p-4 text-sm text-blue-200">
         <Info size={16} className="shrink-0 mt-0.5 text-blue-400" />
         <div>
-          <p className="font-medium text-blue-300 mb-1">How to use</p>
+          <p className="font-medium text-blue-300 mb-1">{t('section_how_to_use')}</p>
           <ol className="list-decimal list-inside space-y-0.5 text-xs text-blue-200/80">
             <li>Close Betaflight Configurator (it locks the port)</li>
             <li>Plug in your FC via USB</li>
@@ -331,7 +333,7 @@ export default function SerialCLIPage() {
         <div className="flex items-center gap-2 text-sm mr-auto">
           <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${connected ? 'bg-emerald-400 animate-pulse' : 'bg-gray-600'}`} />
           <span className={connected ? 'text-emerald-300' : 'text-gray-400'}>
-            {connected ? 'Connected' : 'Disconnected'}
+            {connected ? t('status_connected') : t('status_disconnected')}
           </span>
         </div>
         {/* Baud rate */}
@@ -352,7 +354,7 @@ export default function SerialCLIPage() {
             className="flex items-center gap-1.5 text-xs bg-violet-800 hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed text-violet-100 px-3 py-1.5 rounded-lg transition-colors font-medium"
           >
             {capturing ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
-            {capturing ? 'Reading…' : 'Import to Analysis'}
+            {capturing ? t('status_reading') : t('btn_import_analysis')}
           </button>
         )}
         {/* Connect / Disconnect */}
@@ -361,7 +363,7 @@ export default function SerialCLIPage() {
             onClick={handleDisconnect}
             className="flex items-center gap-1.5 text-xs bg-red-800 hover:bg-red-700 text-red-100 px-3 py-1.5 rounded-lg transition-colors font-medium"
           >
-            <Plug size={13} /> Disconnect
+            <Plug size={13} /> {t('btn_disconnect')}
           </button>
         ) : (
           <button
@@ -370,7 +372,7 @@ export default function SerialCLIPage() {
             className="flex items-center gap-1.5 text-xs bg-emerald-800 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-emerald-100 px-3 py-1.5 rounded-lg transition-colors font-medium"
           >
             <PlugZap size={13} />
-            {connecting ? 'Connecting…' : 'Connect'}
+            {connecting ? t('status_connecting') : t('btn_connect')}
           </button>
         )}
       </div>
@@ -402,14 +404,14 @@ export default function SerialCLIPage() {
                 navigator.clipboard.writeText(text);
               }}
               className="text-gray-500 hover:text-gray-300 transition-colors"
-              title="Copy log"
+              title={t('title_copy_log')}
             >
               <Copy size={13} />
             </button>
             <button
               onClick={() => setLog([])}
               className="text-gray-500 hover:text-red-400 transition-colors"
-              title="Clear log"
+              title={t('title_clear_log')}
             >
               <Trash2 size={13} />
             </button>
@@ -433,7 +435,7 @@ export default function SerialCLIPage() {
           onChange={e => setInputText(e.target.value)}
           onKeyDown={handleKeyDown}
           disabled={!connected}
-          placeholder={connected ? 'Type a command and press Enter… (↑↓ for history)' : 'Connect first…'}
+          placeholder={connected ? t('placeholder_command') : t('placeholder_connect_first')}
           className="flex-1 bg-gray-800 border border-gray-700 disabled:opacity-40 text-gray-100 text-sm rounded-xl px-4 py-2.5 font-mono focus:outline-none focus:border-violet-500 placeholder-gray-600"
         />
         <button
@@ -453,14 +455,14 @@ export default function SerialCLIPage() {
         >
           <span className="flex items-center gap-2 font-medium">
             <Terminal size={15} className="text-green-400" />
-            Paste CLI Commands
+            {t('section_paste_cli')}
           </span>
-          <span className="text-gray-500 text-xs">{showPaste ? 'hide' : 'expand'}</span>
+          <span className="text-gray-500 text-xs">{showPaste ? t('toggle_hide') : t('toggle_expand')}</span>
         </button>
         {showPaste && (
           <div className="px-4 pb-4 space-y-3 border-t border-gray-700">
             <p className="text-xs text-gray-400 mt-3">
-              Paste a full CLI block (from Presets page or manual edit). Lines starting with <code className="bg-gray-700 px-1 rounded">#</code> are skipped.
+              {t('help_paste_cli_block')}
             </p>
             <textarea
               value={pasteText}

@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useData } from '../context/DataContext';
+import { useLang } from '../i18n/LangContext';
 import { analyzeFeedforward } from '../lib/analyzers/feedforward';
 import CLIOutput from '../components/shared/CLIOutput';
 import { ToolHeader, StatCard, NoDataMessage, ProgressBar } from '../components/shared/UIComponents';
@@ -7,6 +8,7 @@ import { ArrowRight } from 'lucide-react';
 
 export default function FeedforwardPage() {
   const { cliParsed, tuningParams, bbParsed } = useData();
+  const { t } = useLang();
 
   const result = useMemo(() => {
     if (!bbParsed || !tuningParams) return null;
@@ -15,7 +17,7 @@ export default function FeedforwardPage() {
   }, [bbParsed, tuningParams]);
 
   if (!cliParsed || !bbParsed) return <NoDataMessage requiresCli requiresBb />;
-  if (!result) return <div className="card text-gray-400">Analysis failed.</div>;
+  if (!result) return <div className="card text-gray-400">{t('analysis_failed')}</div>;
 
   return (
     <div className="fade-in max-w-4xl">
@@ -27,10 +29,10 @@ export default function FeedforwardPage() {
       />
 
       <div className="grid grid-cols-4 gap-3 mb-6">
-        <StatCard label="FF Health" value={result.healthScore?.toFixed(0) ?? '—'} unit="/100" color="text-pink-300" />
-        <StatCard label="Maneuvers" value={result.maneuverCount ?? 0} color="text-blue-300" />
-        <StatCard label="Avg Lag" value={result.avgLag?.toFixed(1) ?? '—'} unit="ms" color="text-yellow-300" />
-        <StatCard label="Diagnosis" value={result.diagnosis ?? '—'} color="text-cyan-300" />
+        <StatCard label={t('label_ff_health')} value={result.healthScore?.toFixed(0) ?? '—'} unit="/100" color="text-pink-300" />
+        <StatCard label={t('label_maneuvers')} value={result.maneuverCount ?? 0} color="text-blue-300" />
+        <StatCard label={t('label_avg_lag')} value={result.avgLag?.toFixed(1) ?? '—'} unit="ms" color="text-yellow-300" />
+        <StatCard label={t('label_diagnosis')} value={result.diagnosis ?? '—'} color="text-cyan-300" />
       </div>
 
       {/* Per-axis */}
@@ -44,15 +46,15 @@ export default function FeedforwardPage() {
                 <h3 className="text-sm font-semibold text-gray-300 mb-3 capitalize">{axis}</h3>
                 <div className="space-y-2 text-xs">
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Current FF</span>
+                    <span className="text-gray-400">{t('label_current_ff')}</span>
                     <span className="text-gray-300">{d.currentFF ?? '—'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Suggested FF</span>
+                    <span className="text-gray-400">{t('label_suggested_ff')}</span>
                     <span className="text-pink-300 font-medium">{d.suggestedFF ?? '—'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Health</span>
+                    <span className="text-gray-400">{t('label_health')}</span>
                     <span className="text-gray-300">{d.health?.toFixed(0) ?? '—'}/100</span>
                   </div>
                   <ProgressBar value={d.health ?? 0} color="pink" />
@@ -66,7 +68,7 @@ export default function FeedforwardPage() {
       {/* Speed bands */}
       {result.speedBands && result.speedBands.length > 0 && (
         <div className="card mb-4">
-          <h3 className="text-sm font-semibold text-gray-300 mb-3">Speed Band Breakdown</h3>
+          <h3 className="text-sm font-semibold text-gray-300 mb-3">{t('label_speed_bands')}</h3>
           <div className="space-y-2">
             {result.speedBands.map((band, i) => (
               <div key={i} className="flex items-center gap-3">
@@ -81,7 +83,7 @@ export default function FeedforwardPage() {
 
       {result.recommendations && result.recommendations.length > 0 && (
         <div className="card mb-4">
-          <h3 className="text-sm font-semibold text-gray-300 mb-2">Recommendations</h3>
+          <h3 className="text-sm font-semibold text-gray-300 mb-2">{t('label_recommendations')}</h3>
           <ul className="space-y-1">
             {result.recommendations.map((rec, i) => (
               <li key={i} className="text-xs text-gray-400 flex items-start gap-2">

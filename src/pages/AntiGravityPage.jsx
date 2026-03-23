@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useData } from '../context/DataContext';
+import { useLang } from '../i18n/LangContext';
 import { analyzeAntiGravity } from '../lib/analyzers/antiGravity';
 import CLIOutput from '../components/shared/CLIOutput';
 import { ToolHeader, StatCard, NoDataMessage, HealthBadge } from '../components/shared/UIComponents';
@@ -7,6 +8,7 @@ import { Flame } from 'lucide-react';
 
 export default function AntiGravityPage() {
   const { cliParsed, tuningParams, bbParsed } = useData();
+  const { t } = useLang();
   const [showDetail, setShowDetail] = useState(false);
 
   const result = useMemo(() => {
@@ -16,7 +18,7 @@ export default function AntiGravityPage() {
   }, [bbParsed, tuningParams]);
 
   if (!cliParsed || !bbParsed) return <NoDataMessage requiresCli requiresBb />;
-  if (!result) return <div className="card text-gray-400">Analysis failed. Check data format.</div>;
+  if (!result) return <div className="card text-gray-400">{t('analysis_failed')}</div>;
 
   return (
     <div className="fade-in max-w-4xl">
@@ -28,16 +30,16 @@ export default function AntiGravityPage() {
       />
 
       <div className="grid grid-cols-4 gap-3 mb-6">
-        <StatCard label="Punches Detected" value={result.punches?.length ?? 0} color="text-orange-300" />
-        <StatCard label="Avg Drift" value={result.avgDrift?.toFixed(1) ?? '—'} unit="°/s" color="text-yellow-300" />
-        <StatCard label="Max Drift" value={result.maxDrift?.toFixed(1) ?? '—'} unit="°/s" color="text-red-300" />
-        <StatCard label="Current AG Gain" value={tuningParams.antiGravity?.gain ?? '—'} color="text-cyan-300" />
+        <StatCard label={t('label_punches_detected')} value={result.punches?.length ?? 0} color="text-orange-300" />
+        <StatCard label={t('label_avg_drift')} value={result.avgDrift?.toFixed(1) ?? '—'} unit="°/s" color="text-yellow-300" />
+        <StatCard label={t('label_max_drift')} value={result.maxDrift?.toFixed(1) ?? '—'} unit="°/s" color="text-red-300" />
+        <StatCard label={t('label_current_ag_gain')} value={tuningParams.antiGravity?.gain ?? '—'} color="text-cyan-300" />
       </div>
 
       {/* Per-axis breakdown */}
       {result.axes && (
         <div className="card mb-4">
-          <h3 className="text-sm font-semibold text-gray-300 mb-3">Per-Axis Drift</h3>
+          <h3 className="text-sm font-semibold text-gray-300 mb-3">{t('label_per_axis_drift')}</h3>
           <div className="grid grid-cols-3 gap-4">
             {['roll', 'pitch', 'yaw'].map(axis => {
               const data = result.axes?.[axis];
@@ -56,7 +58,7 @@ export default function AntiGravityPage() {
       {/* Recommendations */}
       {result.recommendations && result.recommendations.length > 0 && (
         <div className="card mb-4">
-          <h3 className="text-sm font-semibold text-gray-300 mb-2">Recommendations</h3>
+          <h3 className="text-sm font-semibold text-gray-300 mb-2">{t('label_recommendations')}</h3>
           <ul className="space-y-1">
             {result.recommendations.map((rec, i) => (
               <li key={i} className="text-xs text-gray-400 flex items-start gap-2">

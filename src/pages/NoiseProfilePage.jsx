@@ -1,20 +1,22 @@
 import { useMemo } from 'react';
 import { useData } from '../context/DataContext';
+import { useLang } from '../i18n/LangContext';
 import { analyzeNoiseProfile } from '../lib/analyzers/noiseProfile';
 import { ToolHeader, StatCard, NoDataMessage } from '../components/shared/UIComponents';
 import { Radio } from 'lucide-react';
 
 export default function NoiseProfilePage() {
-  const { bbParsed } = useData();
+  const { bbParsed, tuningParams } = useData();
+  const { t } = useLang();
 
   const result = useMemo(() => {
     if (!bbParsed) return null;
-    try { return analyzeNoiseProfile(bbParsed); }
+    try { return analyzeNoiseProfile(bbParsed, tuningParams); }
     catch (e) { console.error('NoiseProfile error:', e); return null; }
-  }, [bbParsed]);
+  }, [bbParsed, tuningParams]);
 
   if (!bbParsed) return <NoDataMessage requiresBb />;
-  if (!result) return <div className="card text-gray-400">Analysis failed.</div>;
+  if (!result) return <div className="card text-gray-400">{t('analysis_failed')}</div>;
 
   const levelColors = { 'Very Clean': 'text-emerald-400', Clean: 'text-green-400', Moderate: 'text-yellow-400', Noisy: 'text-red-400' };
 
@@ -27,10 +29,10 @@ export default function NoiseProfilePage() {
       />
 
       <div className="grid grid-cols-4 gap-3 mb-6">
-        <StatCard label="Noise Level" value={result.noiseLevel} color={levelColors[result.noiseLevel]} />
-        <StatCard label="Health" value={result.healthScore} unit="/100" color="text-violet-300" />
-        <StatCard label="Avg Noise" value={result.avgNoiseRms} unit="°/s" color="text-orange-300" />
-        <StatCard label="Sample Rate" value={result.sampleRate} unit="Hz" color="text-gray-300" />
+        <StatCard label={t('label_noise_level')} value={result.noiseLevel} color={levelColors[result.noiseLevel]} />
+        <StatCard label={t('label_health')} value={result.healthScore} unit="/100" color="text-violet-300" />
+        <StatCard label={t('label_avg_noise')} value={result.avgNoiseRms} unit="°/s" color="text-orange-300" />
+        <StatCard label={t('label_sample_rate')} value={result.sampleRate} unit="Hz" color="text-gray-300" />
       </div>
 
       {/* Frequency Band Breakdown per Axis */}
@@ -74,18 +76,18 @@ export default function NoiseProfilePage() {
       {/* Filter Effectiveness */}
       {result.filterEffectiveness && (
         <div className="card mb-4">
-          <h3 className="text-sm font-semibold text-gray-300 mb-3">Filter Effectiveness</h3>
+          <h3 className="text-sm font-semibold text-gray-300 mb-3">{t('label_filter_effectiveness')}</h3>
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
-              <p className="text-xs text-gray-500">Unfiltered</p>
+              <p className="text-xs text-gray-500">{t('label_unfiltered')}</p>
               <p className="text-lg font-bold text-red-300">{result.filterEffectiveness.unfilteredRms}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-500">Filtered</p>
+              <p className="text-xs text-gray-500">{t('label_filtered')}</p>
               <p className="text-lg font-bold text-green-300">{result.filterEffectiveness.filteredRms}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-500">Reduction</p>
+              <p className="text-xs text-gray-500">{t('label_reduction')}</p>
               <p className="text-lg font-bold text-violet-300">{result.filterEffectiveness.reductionPercent}%</p>
             </div>
           </div>
@@ -94,7 +96,7 @@ export default function NoiseProfilePage() {
 
       {/* Throttle-dependent Noise */}
       <div className="card mb-4">
-        <h3 className="text-sm font-semibold text-gray-300 mb-3">Noise vs Throttle</h3>
+        <h3 className="text-sm font-semibold text-gray-300 mb-3">{t('label_noise_vs_throttle')}</h3>
         <div className="grid grid-cols-4 gap-3">
           {result.throttleNoise.map((band, i) => (
             <div key={i} className="text-center">
@@ -116,7 +118,7 @@ export default function NoiseProfilePage() {
       {/* Noise Sources */}
       {result.noiseSources.length > 0 && (
         <div className="card mb-4">
-          <h3 className="text-sm font-semibold text-gray-300 mb-2">Identified Noise Sources</h3>
+          <h3 className="text-sm font-semibold text-gray-300 mb-2">{t('label_noise_sources')}</h3>
           <div className="space-y-2">
             {result.noiseSources.map((ns, i) => (
               <div key={i} className="flex items-center justify-between bg-gray-900/50 rounded p-2">
@@ -140,11 +142,11 @@ export default function NoiseProfilePage() {
 
       {result.recommendations?.length > 0 && (
         <div className="card mb-4">
-          <h3 className="text-sm font-semibold text-gray-300 mb-2">Recommendations</h3>
+          <h3 className="text-sm font-semibold text-gray-300 mb-2">{t('label_recommendations')}</h3>
           <ul className="space-y-1">
             {result.recommendations.map((rec, i) => (
               <li key={i} className="text-xs text-gray-400 flex items-start gap-2">
-                <span className="text-violet-400 mt-0.5">&#9656;</span> {rec}
+                <span className="text-violet-400 mt-0.5">&#9656;</span> {typeof rec === 'string' ? rec : rec.message}
               </li>
             ))}
           </ul>

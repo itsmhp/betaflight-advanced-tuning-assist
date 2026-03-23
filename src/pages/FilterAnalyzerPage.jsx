@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useData } from '../context/DataContext';
+import { useLang } from '../i18n/LangContext';
 import { analyzeFilters } from '../lib/analyzers/filterAnalyzer';
 import { generateNoiseHeatmap } from '../lib/analyzers/noiseProfile';
 import NoiseHeatmap from '../components/NoiseHeatmap';
@@ -9,6 +10,7 @@ import { Filter } from 'lucide-react';
 
 export default function FilterAnalyzerPage() {
   const { cliParsed, tuningParams, bbParsed } = useData();
+  const { t } = useLang();
 
   const result = useMemo(() => {
     if (!bbParsed || !tuningParams) return null;
@@ -23,7 +25,7 @@ export default function FilterAnalyzerPage() {
   }, [bbParsed]);
 
   if (!cliParsed || !bbParsed) return <NoDataMessage requiresCli requiresBb />;
-  if (!result) return <div className="card text-gray-400">Analysis failed.</div>;
+  if (!result) return <div className="card text-gray-400">{t('analysis_failed')}</div>;
 
   return (
     <div className="fade-in max-w-4xl">
@@ -35,16 +37,16 @@ export default function FilterAnalyzerPage() {
       />
 
       <div className="grid grid-cols-4 gap-3 mb-6">
-        <StatCard label="SNR" value={result.snr?.toFixed(1) ?? '—'} unit="dB" color="text-yellow-300" sub="Signal-to-noise" />
-        <StatCard label="Peak Freq" value={result.peakFreq ?? '—'} unit="Hz" color="text-orange-300" />
-        <StatCard label="Noise Floor" value={result.noiseFloor?.toFixed(1) ?? '—'} unit="dB" color="text-red-300" />
-        <StatCard label="Throttle Corr." value={result.throttleCorrelation?.toFixed(2) ?? '—'} color="text-cyan-300" sub="Noise vs throttle" />
+        <StatCard label={t('label_snr')} value={result.snr?.toFixed(1) ?? '—'} unit="dB" color="text-yellow-300" sub={t('label_signal_to_noise')} />
+        <StatCard label={t('label_peak_freq')} value={result.peakFreq ?? '—'} unit="Hz" color="text-orange-300" />
+        <StatCard label={t('label_noise_floor')} value={result.noiseFloor?.toFixed(1) ?? '—'} unit="dB" color="text-red-300" />
+        <StatCard label={t('label_throttle_corr')} value={result.throttleCorrelation?.toFixed(2) ?? '—'} color="text-cyan-300" sub={t('label_noise_vs_throttle')} />
       </div>
 
       {/* Noise Peaks */}
       {result.peaks && result.peaks.length > 0 && (
         <div className="card mb-4">
-          <h3 className="text-sm font-semibold text-gray-300 mb-3">Detected Noise Peaks</h3>
+          <h3 className="text-sm font-semibold text-gray-300 mb-3">{t('label_detected_noise_peaks')}</h3>
           <div className="grid grid-cols-2 gap-2">
             {result.peaks.map((peak, i) => (
               <div key={i} className="bg-gray-900/50 rounded p-2 flex justify-between items-center">
@@ -59,7 +61,7 @@ export default function FilterAnalyzerPage() {
       {/* Filter Type Suggestion */}
       {result.filterMode && (
         <div className="card mb-4">
-          <h3 className="text-sm font-semibold text-gray-300 mb-2">Filter Strategy</h3>
+          <h3 className="text-sm font-semibold text-gray-300 mb-2">{t('label_filter_strategy')}</h3>
           <p className="text-sm text-gray-200 font-medium">{result.filterMode}</p>
           {result.filterDetails && <p className="text-xs text-gray-400 mt-1">{result.filterDetails}</p>}
         </div>
@@ -67,7 +69,7 @@ export default function FilterAnalyzerPage() {
 
       {result.recommendations && result.recommendations.length > 0 && (
         <div className="card mb-4">
-          <h3 className="text-sm font-semibold text-gray-300 mb-2">Recommendations</h3>
+          <h3 className="text-sm font-semibold text-gray-300 mb-2">{t('label_recommendations')}</h3>
           <ul className="space-y-1">
             {result.recommendations.map((rec, i) => (
               <li key={i} className="text-xs text-gray-400 flex items-start gap-2">
@@ -86,7 +88,7 @@ export default function FilterAnalyzerPage() {
 
       {heatmap && (
         <div className="card mb-6">
-          <h3 className="text-sm font-semibold text-gray-300 mb-3">Noise Heatmap (Throttle vs Frequency)</h3>
+          <h3 className="text-sm font-semibold text-gray-300 mb-3">{t('label_heatmap_throttle_freq')}</h3>
           <NoiseHeatmap heatmapData={heatmap} />
         </div>
       )}

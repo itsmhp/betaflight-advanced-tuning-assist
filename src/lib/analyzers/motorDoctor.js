@@ -120,25 +120,41 @@ export function analyzeMotors(blackboxData) {
   else if (overallScore >= 50) healthLevel = 'Fair';
   else healthLevel = 'Poor';
 
-  // Recommendations
+  // Recommendations with exact measured data
   const recommendations = [];
   if (balancePercent > 5) {
-    recommendations.push(`Motor balance deviation: ${balancePercent.toFixed(1)}% — check prop balance, motor screws, and CG position.`);
+    recommendations.push({
+      message: `Motor balance deviation: ${balancePercent.toFixed(1)}% (motor means: ${motorMeans.join(', ')}). F/B diff: ${frontBack}, L/R diff: ${leftRight}. Check prop balance, CG position.`,
+      severity: 'warning',
+    });
   }
   if (cgOffsetDirection !== 'Centered') {
-    recommendations.push(`CG offset detected: ${cgOffsetDirection}. Adjust battery position.`);
+    recommendations.push({
+      message: `CG offset: ${cgOffsetDirection} (F/B: ${frontBack}, L/R: ${leftRight}, Diag: ${diagonal}). Adjust battery position.`,
+      severity: 'info',
+    });
   }
   for (const s of motorStats) {
     if (s.maxSaturation > 5) {
-      recommendations.push(`Motor ${s.motor}: ${s.maxSaturation}% time at max output — consider larger props or higher KV motors.`);
+      recommendations.push({
+        message: `Motor ${s.motor}: ${s.maxSaturation}% at max output (mean: ${s.mean}, P95: ${s.p95}). Consider larger props or higher KV.`,
+        severity: 'warning',
+      });
     }
     if (s.noise > 50) {
-      recommendations.push(`Motor ${s.motor}: High command noise (${s.noise}) — possible ESC issue or bearing wear.`);
+      recommendations.push({
+        message: `Motor ${s.motor}: Command noise ${s.noise} (threshold: 50, stddev of derivative). Possible ESC issue or bearing wear.`,
+        severity: 'warning',
+      });
     }
   }
   for (const fft of motorFFT) {
     if (fft.peaks.length > 3) {
-      recommendations.push(`Motor ${fft.motor}: Multiple vibration peaks detected — inspect prop and motor.`);
+      const peakStr = fft.peaks.slice(0, 3).map(p => `${p.frequency}Hz (${p.magnitude}dB)`).join(', ');
+      recommendations.push({
+        message: `Motor ${fft.motor}: ${fft.peaks.length} vibration peaks detected (${peakStr}). Inspect prop and motor.`,
+        severity: 'info',
+      });
     }
   }
 

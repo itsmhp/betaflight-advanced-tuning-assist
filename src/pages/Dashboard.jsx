@@ -3,6 +3,7 @@ import { useData } from '../context/DataContext';
 import { useNavigate } from 'react-router-dom';
 import { useLang } from '../i18n/LangContext';
 import FileUpload from '../components/shared/FileUpload';
+import FlightTrimControl from '../components/shared/FlightTrimControl';
 import { runAllAnalyzers, computeOverallScore, aggregateResults, renderCLI, TOOL_DEFS } from '../lib/analyzeAll';
 import { generateNoiseHeatmap } from '../lib/analyzers/noiseProfile';
 import NoiseHeatmap from '../components/NoiseHeatmap';
@@ -59,7 +60,7 @@ function ScoreRing({ score, level, size=56 }) {
 }
 
 export default function Dashboard() {
-  const { cliParsed, bbParsed, tuningParams, clearAll } = useData();
+  const { cliParsed, bbParsed, bbParsedTrimmed, tuningParams, clearAll, trimRange, updateTrimRange } = useData();
   const navigate = useNavigate();
   const { t } = useLang();
 
@@ -86,8 +87,9 @@ export default function Dashboard() {
     setAggregated(null);
     setCliText(null);
     setProgress({ step:0, total:0, currentKey:null });
+    const dataForAnalysis = bbParsedTrimmed || bbParsed;
     const results = await runAllAnalyzers(
-      bbParsed, cliParsed, tuningParams,
+      dataForAnalysis, cliParsed, tuningParams,
       (step, total, key) => setProgress({ step, total, currentKey:key })
     );
     const score = computeOverallScore(results);
@@ -99,7 +101,7 @@ export default function Dashboard() {
     setAggregated(agg);
     setCliText(renderCLI(agg.allCliChanges, cliParsed ? cliParsed.activeProfile ?? 0 : 0));
     setAnalyzing(false);
-  }, [hasAnyData, analyzing, bbParsed, cliParsed, tuningParams]);
+  }, [hasAnyData, analyzing, bbParsed, bbParsedTrimmed, cliParsed, tuningParams]);
 
   const handleCopy = useCallback(() => {
     if (!cliText) return;
@@ -116,8 +118,8 @@ export default function Dashboard() {
     try {
       // Run in next tick to allow UI to update
       await new Promise(r => setTimeout(r, 30));
-      const data = generateNoiseHeatmap(bbParsed);
-      setHeatmapData(data);
+      const heatData = generateNoiseHeatmap(bbParsedTrimmed || bbParsed);
+      setHeatmapData(heatData);
     } catch (e) {
       console.error('Heatmap error:', e);
     } finally {
@@ -139,6 +141,16 @@ export default function Dashboard() {
       <div className="card mb-5">
         <FileUpload />
       </div>
+
+      {bbParsed && (
+        <div className="mb-5">
+          <FlightTrimControl
+            bbParsed={bbParsed}
+            trimRange={trimRange}
+            onTrimChange={updateTrimRange}
+          />
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
         <div className={`card flex items-center gap-3 ${cliParsed?'border-emerald-500/30':'border-violet-900/20'}`}>
@@ -167,7 +179,7 @@ export default function Dashboard() {
             </div>
             <div className="text-xs text-gray-500">
               {bbParsed
-                ? `${bbParsed.data?.length??0} ${t('samples')} @ ${bbParsed.sampleRate||'?'} ${t('hz')}`
+                ? `${(bbParsedTrimmed || bbParsed).data?.length??0} ${t('samples')} @ ${bbParsed.sampleRate||'?'} ${t('hz')}${trimRange ? ' (trimmed)' : ''}`
                 : t('notLoaded')}
             </div>
           </div>

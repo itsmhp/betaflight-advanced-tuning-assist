@@ -1,7 +1,8 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, useMemo } from 'react';
 import { parseCLIDump, extractTuningParams } from '../lib/cliParser';
 import { parseBlackboxCSV, detectCapabilities } from '../lib/blackboxParser';
 import { decodeBBL, isBBLFile } from '../lib/bblDecoder';
+import { applyTrim } from '../lib/flightTrimmer';
 
 const DataContext = createContext(null);
 
@@ -11,6 +12,7 @@ export function DataProvider({ children }) {
   const [tuningParams, setTuningParams] = useState(null);
   const [bbRaw, setBbRaw] = useState('');
   const [bbParsed, setBbParsed] = useState(null);
+  const [trimRange, setTrimRange] = useState(null); // { startIdx, endIdx } or null
   const [comparisonBlackboxRaw, setComparisonBlackboxRaw] = useState('');
   const [comparisonBlackboxData, setComparisonBlackboxData] = useState(null);
   const [comparisonLabel, setComparisonLabel] = useState('After');
@@ -63,6 +65,7 @@ export function DataProvider({ children }) {
       
       setBbRaw(typeof textOrBuffer === 'string' ? textOrBuffer : `[BBL binary: ${parsed.rowCount} frames]`);
       setBbParsed(parsed);
+      setTrimRange(null); // Reset trim when new file loaded
       const caps = detectCapabilities(parsed.available || new Set(parsed.headers || []));
       setCapabilities(caps);
       setErrors(prev => prev.filter(e => e.source !== 'bb'));
@@ -118,18 +121,30 @@ export function DataProvider({ children }) {
     setAnalysisResults(prev => ({ ...prev, [toolKey]: result }));
   }, []);
 
+  // Compute trimmed bbParsed — only recomputes when bbParsed or trimRange changes
+  const bbParsedTrimmed = useMemo(() => {
+    if (!bbParsed || !trimRange) return bbParsed;
+    return applyTrim(bbParsed, trimRange.startIdx, trimRange.endIdx);
+  }, [bbParsed, trimRange]);
+
+  const updateTrimRange = useCallback((startIdx, endIdx) => {
+    setTrimRange({ startIdx, endIdx });
+  }, []);
+
   const clearAll = useCallback(() => {
     setCliRaw(''); setCliParsed(null); setTuningParams(null);
     setBbRaw(''); setBbParsed(null); setCapabilities({});
     setComparisonBlackboxRaw(''); setComparisonBlackboxData(null);
     setComparisonLabel('After'); setBaselineLabel('Before');
     setAnalysisResults({}); setErrors([]);
+    setTrimRange(null);
   }, []);
 
   return (
     <DataContext.Provider value={{
       cliRaw, cliParsed, tuningParams,
-      bbRaw, bbParsed, capabilities,
+      bbRaw, bbParsed, bbParsedTrimmed, capabilities,
+      trimRange, updateTrimRange,
       comparisonBlackboxRaw,
       comparisonBlackboxData,
       comparisonLabel,

@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useData } from '../context/DataContext';
+import { useLang } from '../i18n/LangContext';
 import { applyPIDMultiplier } from '../lib/analyzers/pidMultiplier';
 import CLIOutput from '../components/shared/CLIOutput';
 import { ToolHeader, NoDataMessage } from '../components/shared/UIComponents';
@@ -7,6 +8,7 @@ import { Sliders } from 'lucide-react';
 
 export default function PIDMultiplierPage() {
   const { cliParsed, tuningParams } = useData();
+  const { t } = useLang();
   const [multiplier, setMultiplier] = useState(1.0);
 
   const result = useMemo(() => {
@@ -28,7 +30,7 @@ export default function PIDMultiplierPage() {
       {/* Slider */}
       <div className="card mb-6">
         <div className="flex items-center gap-4 mb-3">
-          <label className="text-sm text-gray-300">Multiplier</label>
+          <label className="text-sm text-gray-300">{t('label_multiplier')}</label>
           <input
             type="range" min="0.1" max="2.0" step="0.05"
             value={multiplier}
@@ -54,15 +56,15 @@ export default function PIDMultiplierPage() {
       {/* PID Table */}
       {result && (
         <div className="card mb-4">
-          <h3 className="text-sm font-semibold text-gray-300 mb-3">Scaled PID Values</h3>
+          <h3 className="text-sm font-semibold text-gray-300 mb-3">{t('label_scaled_pid')}</h3>
           <table className="w-full text-xs">
             <thead>
               <tr className="text-gray-500 border-b border-gray-800">
-                <th className="text-left py-2">Axis</th>
+                <th className="text-left py-2">{t('header_axis')}</th>
                 <th className="text-right py-2">P</th>
                 <th className="text-right py-2">I</th>
                 <th className="text-right py-2">D</th>
-                <th className="text-right py-2">F (FF)</th>
+                <th className="text-right py-2">{t('header_ff')}</th>
               </tr>
             </thead>
             <tbody>

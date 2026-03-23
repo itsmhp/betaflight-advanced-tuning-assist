@@ -1,7 +1,7 @@
 // ─── 11. Prop Wash Detection Tool ───
 import { rms, mean, pearsonCorrelation, magnitudeSpectrum, hamming, clamp } from '../utils.js';
 
-export function analyzePropWash(blackboxData) {
+export function analyzePropWash(blackboxData, cliParams) {
   const sampleRate = blackboxData.sampleRate || 2000;
   const gyroR = blackboxData.data.map(r => r['roll-gyro'] ?? 0);
   const gyroP = blackboxData.data.map(r => r['pitch-gyro'] ?? 0);
@@ -123,27 +123,91 @@ export function analyzePropWash(blackboxData) {
   else if (severityScore > 0.3) severityLevel = 'Mild';
   else severityLevel = 'Minimal';
 
-  // Recommendations
+  // Recommendations with exact CLI values
   const recommendations = [];
+  const cliChanges = {};
+
+  // Read current settings
+  const currentDMin = {
+    roll: cliParams?.pid?.roll?.dMin ?? 20,
+    pitch: cliParams?.pid?.pitch?.dMin ?? 22,
+  };
+  const currentD = {
+    roll: cliParams?.pid?.roll?.d ?? 35,
+    pitch: cliParams?.pid?.pitch?.d ?? 38,
+  };
+
+  if (severityLevel === 'Severe' || severityLevel === 'Moderate') {
+    // Increase D gain proportional to prop wash severity to add damping
+    const severityFactor = severityLevel === 'Severe' ? 0.20 : 0.10;
+    for (const axis of ['roll', 'pitch']) {
+      const dIncrease = Math.round(currentD[axis] * severityFactor);
+      const suggestedD = clamp(currentD[axis] + dIncrease, 15, 120);
+      const dMinIncrease = Math.round(currentDMin[axis] * severityFactor);
+      const suggestedDMin = clamp(currentDMin[axis] + dMinIncrease, 10, 80);
+
+      if (suggestedD !== currentD[axis]) {
+        cliChanges[`d_${axis}`] = suggestedD;
+        recommendations.push({
+          message: `${axis}: Prop wash detected (severity: ${severityScore}). Increase D from ${currentD[axis]} → ${suggestedD} for damping.`,
+          param: `d_${axis}`,
+          currentValue: currentD[axis],
+          suggestedValue: suggestedD,
+          command: `set d_${axis} = ${suggestedD}`,
+          severity: 'warning',
+        });
+      }
+      if (suggestedDMin !== currentDMin[axis]) {
+        cliChanges[`d_min_${axis}`] = suggestedDMin;
+        recommendations.push({
+          message: `${axis}: Raise d_min from ${currentDMin[axis]} → ${suggestedDMin} to maintain damping at low setpoints.`,
+          param: `d_min_${axis}`,
+          currentValue: currentDMin[axis],
+          suggestedValue: suggestedDMin,
+          command: `set d_min_${axis} = ${suggestedDMin}`,
+          severity: 'info',
+        });
+      }
+    }
+
+    // Suggest dynamic notch tuning if frequency analysis shows prop wash peaks
+    const pwBandEnergy = (rollBands.propWash + pitchBands.propWash) / 2;
+    if (pwBandEnergy > 0.15) {
+      const suggestedDynNotchMin = 40; // Typical prop wash is 20-100Hz, notch should reach down
+      const currentDynNotchMin = cliParams?.dynNotch?.minHz ?? 150;
+      if (currentDynNotchMin > 60) {
+        cliChanges.dyn_notch_min_hz = suggestedDynNotchMin;
+        recommendations.push({
+          message: `Prop wash band energy ${Math.round(pwBandEnergy * 100)}%. Lower dyn_notch_min_hz from ${currentDynNotchMin} → ${suggestedDynNotchMin} to capture prop wash frequencies.`,
+          param: 'dyn_notch_min_hz',
+          currentValue: currentDynNotchMin,
+          suggestedValue: suggestedDynNotchMin,
+          command: `set dyn_notch_min_hz = ${suggestedDynNotchMin}`,
+          severity: 'info',
+        });
+      }
+    }
+  }
+
   if (severityLevel === 'Severe') {
-    recommendations.push('Check props for damage, balance, and wear.');
-    recommendations.push('Inspect motors for bearing play or debris.');
-    recommendations.push('Verify frame integrity — check for cracks or loose screws.');
-    recommendations.push('Review ESC settings (motor timing, PWM frequency).');
-  } else if (severityLevel === 'Moderate') {
-    recommendations.push('Balance props to reduce vibrations.');
-    recommendations.push('Add FC soft mounting or vibration isolation.');
-    recommendations.push('Consider dampening frame flex points.');
-  } else if (severityLevel === 'Mild') {
-    recommendations.push('Monitor for worsening. Minor prop/mount adjustments may help.');
+    recommendations.push({
+      message: `Severe prop wash (${events.length} events in ${totalWindows} windows). Check props for damage, motor bearings, and frame integrity.`,
+      severity: 'warning',
+    });
   }
 
   const maxGyroRMS = rms(gyroR);
   if (maxGyroRMS > 30) {
-    recommendations.push('⚠ High Vibration Levels: Gyro RMS > 30 °/s — address mechanical issues.');
+    recommendations.push({
+      message: `High vibration: Gyro RMS ${Math.round(maxGyroRMS)} °/s (threshold: 30). Address mechanical issues.`,
+      severity: 'warning',
+    });
   }
   if (maxCorrelation > 0.6) {
-    recommendations.push('⚠ Motor-Gyro Interference: High correlation detected — isolate FC from motors.');
+    recommendations.push({
+      message: `Motor-Gyro correlation ${Math.round(maxCorrelation * 100)}% — isolate FC from motor vibration.`,
+      severity: 'warning',
+    });
   }
 
   return {
@@ -156,6 +220,7 @@ export function analyzePropWash(blackboxData) {
     frequencyBands: { roll: rollBands, pitch: pitchBands },
     maxCorrelation: Math.round(maxCorrelation * 100) / 100,
     recommendations,
+    cliChanges,
     events: events.slice(0, 50),
     correlations
   };

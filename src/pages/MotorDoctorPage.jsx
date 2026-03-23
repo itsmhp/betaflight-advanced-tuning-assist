@@ -1,11 +1,13 @@
 import { useMemo } from 'react';
 import { useData } from '../context/DataContext';
+import { useLang } from '../i18n/LangContext';
 import { analyzeMotors } from '../lib/analyzers/motorDoctor';
 import { ToolHeader, StatCard, NoDataMessage, HealthBadge } from '../components/shared/UIComponents';
 import { Cog } from 'lucide-react';
 
 export default function MotorDoctorPage() {
   const { bbParsed } = useData();
+  const { t } = useLang();
 
   const result = useMemo(() => {
     if (!bbParsed) return null;
@@ -14,7 +16,7 @@ export default function MotorDoctorPage() {
   }, [bbParsed]);
 
   if (!bbParsed) return <NoDataMessage requiresBb />;
-  if (!result) return <div className="card text-gray-400">Analysis failed.</div>;
+  if (!result) return <div className="card text-gray-400">{t('analysis_failed')}</div>;
 
   const levelColors = { Excellent: 'text-emerald-400', Good: 'text-green-400', Fair: 'text-yellow-400', Poor: 'text-red-400' };
 
@@ -27,10 +29,10 @@ export default function MotorDoctorPage() {
       />
 
       <div className="grid grid-cols-4 gap-3 mb-6">
-        <StatCard label="Health" value={result.overallScore} unit="/100" color={levelColors[result.healthLevel]} />
-        <StatCard label="Balance Dev" value={result.balancePercent} unit="%" color="text-orange-300" sub="Motor mean deviation" />
-        <StatCard label="CG Offset" value={result.cgOffsetDirection} color="text-cyan-300" />
-        <StatCard label="Status" value={result.healthLevel} color={levelColors[result.healthLevel]} />
+        <StatCard label={t('label_health')} value={result.overallScore} unit="/100" color={levelColors[result.healthLevel]} />
+        <StatCard label={t('label_balance_dev')} value={result.balancePercent} unit="%" color="text-orange-300" sub={t('label_motor_mean_dev')} />
+        <StatCard label={t('label_cg_offset')} value={result.cgOffsetDirection} color="text-cyan-300" />
+        <StatCard label={t('label_status')} value={result.healthLevel} color={levelColors[result.healthLevel]} />
       </div>
 
       {/* Motor Cards */}
@@ -45,35 +47,35 @@ export default function MotorDoctorPage() {
               </div>
               <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
                 <div className="flex justify-between text-gray-400">
-                  <span>Mean</span><span className="text-gray-200">{stat.mean}</span>
+                  <span>{t('label_mean')}</span><span className="text-gray-200">{stat.mean}</span>
                 </div>
                 <div className="flex justify-between text-gray-400">
-                  <span>Std Dev</span><span className="text-gray-200">{stat.stddev}</span>
+                  <span>{t('label_std_dev')}</span><span className="text-gray-200">{stat.stddev}</span>
                 </div>
                 <div className="flex justify-between text-gray-400">
-                  <span>Range (P5-P95)</span><span className="text-gray-200">{stat.p5} — {stat.p95}</span>
+                  <span>{t('label_range_p5_p95')}</span><span className="text-gray-200">{stat.p5} — {stat.p95}</span>
                 </div>
                 <div className="flex justify-between text-gray-400">
-                  <span>Noise</span><span className="text-orange-300">{stat.noise}</span>
+                  <span>{t('label_noise')}</span><span className="text-orange-300">{stat.noise}</span>
                 </div>
                 <div className="flex justify-between text-gray-400">
-                  <span>Max Sat</span><span className="text-red-300">{stat.maxSaturation}%</span>
+                  <span>{t('label_max_sat')}</span><span className="text-red-300">{stat.maxSaturation}%</span>
                 </div>
                 <div className="flex justify-between text-gray-400">
-                  <span>Min Sat</span><span className="text-yellow-300">{stat.minSaturation}%</span>
+                  <span>{t('label_min_sat')}</span><span className="text-yellow-300">{stat.minSaturation}%</span>
                 </div>
                 <div className="flex justify-between text-gray-400">
-                  <span>Corr Roll</span><span className="text-violet-300">{stat.corrRoll}</span>
+                  <span>{t('label_corr_roll')}</span><span className="text-violet-300">{stat.corrRoll}</span>
                 </div>
                 <div className="flex justify-between text-gray-400">
-                  <span>Corr Pitch</span><span className="text-violet-300">{stat.corrPitch}</span>
+                  <span>{t('label_corr_pitch')}</span><span className="text-violet-300">{stat.corrPitch}</span>
                 </div>
               </div>
 
               {/* FFT peaks */}
               {result.motorFFT[idx]?.peaks.length > 0 && (
                 <div className="mt-3 pt-2 border-t border-gray-700/50">
-                  <p className="text-xs text-gray-500 mb-1">Vibration Peaks</p>
+                  <p className="text-xs text-gray-500 mb-1">{t('label_vibration_peaks')}</p>
                   <div className="flex flex-wrap gap-1">
                     {result.motorFFT[idx].peaks.slice(0, 3).map((peak, pi) => (
                       <span key={pi} className="text-xs px-2 py-0.5 rounded bg-violet-500/10 text-violet-300 border border-violet-500/20">
@@ -90,18 +92,18 @@ export default function MotorDoctorPage() {
 
       {/* Balance Diagnostics */}
       <div className="card mb-4">
-        <h3 className="text-sm font-semibold text-gray-300 mb-3">Balance Diagnostics</h3>
+        <h3 className="text-sm font-semibold text-gray-300 mb-3">{t('label_balance_diagnostics')}</h3>
         <div className="grid grid-cols-3 gap-4 text-xs">
           <div className="flex justify-between text-gray-400">
-            <span>Front/Back Diff</span>
+            <span>{t('label_front_back_diff')}</span>
             <span className="text-gray-200">{result.frontBackDiff}</span>
           </div>
           <div className="flex justify-between text-gray-400">
-            <span>Left/Right Diff</span>
+            <span>{t('label_left_right_diff')}</span>
             <span className="text-gray-200">{result.leftRightDiff}</span>
           </div>
           <div className="flex justify-between text-gray-400">
-            <span>Diagonal Diff</span>
+            <span>{t('label_diagonal_diff')}</span>
             <span className="text-gray-200">{result.diagonalDiff}</span>
           </div>
         </div>
@@ -110,13 +112,13 @@ export default function MotorDoctorPage() {
       {/* Throttle Response */}
       {result.motorResponsiveness && (
         <div className="card mb-4">
-          <h3 className="text-sm font-semibold text-gray-300 mb-3">Throttle Response</h3>
+          <h3 className="text-sm font-semibold text-gray-300 mb-3">{t('label_throttle_response')}</h3>
           <div className="grid grid-cols-4 gap-3">
             {result.motorResponsiveness.map((m, i) => (
               <div key={i} className="text-center">
                 <p className="text-xs text-gray-500">Motor {m.motor}</p>
                 <p className="text-lg font-bold text-violet-300">{m.throttleCorr}</p>
-                <p className="text-xs text-gray-500">Correlation</p>
+                <p className="text-xs text-gray-500">{t('label_correlation')}</p>
               </div>
             ))}
           </div>
@@ -125,11 +127,11 @@ export default function MotorDoctorPage() {
 
       {result.recommendations?.length > 0 && (
         <div className="card mb-4">
-          <h3 className="text-sm font-semibold text-gray-300 mb-2">Recommendations</h3>
+          <h3 className="text-sm font-semibold text-gray-300 mb-2">{t('label_recommendations')}</h3>
           <ul className="space-y-1">
             {result.recommendations.map((rec, i) => (
               <li key={i} className="text-xs text-gray-400 flex items-start gap-2">
-                <span className="text-violet-400 mt-0.5">&#9656;</span> {rec}
+                <span className="text-violet-400 mt-0.5">&#9656;</span> {typeof rec === 'string' ? rec : rec.message}
               </li>
             ))}
           </ul>

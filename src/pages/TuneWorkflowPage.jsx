@@ -4,13 +4,12 @@ import {
   Waypoints, CheckCircle2, AlertCircle, AlertTriangle,
   ChevronRight, ChevronDown, Loader2, Info,
   Lock, Copy, Check, Play, RotateCw, Cpu, X, SkipForward,
-  ClipboardList, Rocket, FileDown, RotateCcw, Sparkles
+  ClipboardList, Rocket, FileDown, RotateCcw
 } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { useDroneProfile } from '../context/DroneProfileContext';
 import { useLang } from '../i18n/LangContext';
 import { runAllAnalyzers, aggregateResults, renderCLI } from '../lib/analyzeAll';
-import { generateAIInsight } from '../lib/aiInterpreter';
 import FileUpload from '../components/shared/FileUpload';
 import { generateNoiseHeatmap } from '../lib/analyzers/noiseProfile';
 import NoiseHeatmap from '../components/NoiseHeatmap';
@@ -628,20 +627,11 @@ function StageCard({
   const { profile } = useDroneProfile();
   const [expanded, setExpanded] = useState(false);
   const { copied, copy } = useCopyClipboard();
-  const [aiExpanded, setAiExpanded] = useState(false);
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiError, setAiError] = useState('');
-  const [aiText, setAiText] = useState('');
+
   const [heatmapData, setHeatmapData] = useState(null);
   const [heatmapLoading, setHeatmapLoading] = useState(false);
   const [heatmapError, setHeatmapError] = useState('');
-  const [aiApiKey, setAiApiKey] = useState(() => {
-    try {
-      return localStorage.getItem('btfl_anthropic_api_key') || '';
-    } catch {
-      return '';
-    }
-  });
+
 
   const status = stage.status;
   const isLocked = status === STAGE_STATUS.LOCKED;
@@ -689,44 +679,7 @@ function StageCard({
     }
   };
 
-  const handleSaveApiKey = () => {
-    try {
-      if (aiApiKey?.trim()) {
-        localStorage.setItem('btfl_anthropic_api_key', aiApiKey.trim());
-      } else {
-        localStorage.removeItem('btfl_anthropic_api_key');
-      }
-    } catch {
-      // ignore localStorage errors
-    }
-  };
 
-  const handleGetAIInsight = async () => {
-    setAiLoading(true);
-    setAiError('');
-    try {
-      const result = await generateAIInsight({
-        stageId: stage.id,
-        analysisData: stageAnalysisData,
-        droneProfile: profile,
-        cliData: cliParsed,
-        lang,
-        apiKey: aiApiKey,
-      });
-
-      if (!result.ok) {
-        setAiError(result.error || 'Failed to generate AI insight.');
-        return;
-      }
-
-      setAiText(result.text || 'No AI output.');
-      setAiExpanded(true);
-    } catch (err) {
-      setAiError(err?.message || 'Failed to generate AI insight.');
-    } finally {
-      setAiLoading(false);
-    }
-  };
 
   useEffect(() => {
     if (stage.id === 'noise') {
@@ -1014,40 +967,7 @@ function StageCard({
                         </div>
                       )}
 
-                      {/* AI Interpretation */}
-                      {isActive && (
-                        <div className="space-y-2 border-t border-gray-700/30 pt-3">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <button
-                              onClick={handleGetAIInsight}
-                              disabled={aiLoading || !stageAnalysisData}
-                              className="text-xs bg-violet-700 hover:bg-violet-600 disabled:opacity-40 text-white px-3 py-1.5 rounded-lg inline-flex items-center gap-1.5"
-                            >
-                              {aiLoading ? <><Loader2 size={12} className="animate-spin" /> Analyzing...</> : <><Sparkles size={12} /> Get AI Insight</>}
-                            </button>
-                            <input
-                              type="password"
-                              value={aiApiKey}
-                              onChange={(e) => setAiApiKey(e.target.value)}
-                              onBlur={handleSaveApiKey}
-                              placeholder="Anthropic API Key"
-                              className="text-xs bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-gray-300 min-w-[180px]"
-                            />
-                          </div>
-                          {aiError && (
-                            <div className="text-xs text-red-300 bg-red-900/20 border border-red-700/40 rounded-lg px-3 py-2">
-                              {aiError} (fallback: keep using rule-based recommendations above)
-                            </div>
-                          )}
-                          {aiText && aiExpanded && (
-                            <div className="bg-blue-900/20 border border-blue-700/40 rounded-lg px-3 py-2.5 space-y-1.5">
-                              <div className="text-xs font-semibold text-blue-300">AI Interpretation</div>
-                              <p className="text-xs text-blue-100 whitespace-pre-wrap leading-relaxed">{aiText}</p>
-                              <p className="text-[10px] text-blue-300/80">AI suggestions are advisory; verify with test flight.</p>
-                            </div>
-                          )}
-                        </div>
-                      )}
+
                     </div>
                   ),
                 },

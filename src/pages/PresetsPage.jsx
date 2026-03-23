@@ -7,6 +7,7 @@ import { FRAME_SIZE_META, getPresetsForSize, renderPresetCLI } from '../lib/pres
 import { applySmartAdjustments } from '../lib/smartPresets';
 import { useDroneProfile } from '../context/DroneProfileContext';
 import { useData } from '../context/DataContext';
+import { useLang } from '../i18n/LangContext';
 
 const SIZE_KEYS = Object.keys(FRAME_SIZE_META);
 
@@ -213,6 +214,7 @@ function FrameSizePanel({ sizeKey, analysisResults }) {
 export default function PresetsPage() {
   const { profile, inferredFrameClass } = useDroneProfile();
   const { analysisResults } = useData();
+  const { t } = useLang();
 
   // Default active tab = drone's inferred frame class (or 5inch)
   const defaultTab = SIZE_KEYS.includes(inferredFrameClass) ? inferredFrameClass : '5inch';
@@ -231,7 +233,7 @@ export default function PresetsPage() {
           <BookMarked size={22} className="text-cyan-400 shrink-0" />
           <div>
             <h1 className="text-xl font-bold text-white">Tuning Presets</h1>
-            <p className="text-sm text-gray-400">Betaflight 4.3+ · 9 quad types · 4 aggressiveness levels each</p>
+            <p className="text-sm text-gray-400">{t('subtitle_presets')}</p>
           </div>
         </div>
         {/* Drone profile badge */}
@@ -249,11 +251,10 @@ export default function PresetsPage() {
 
       {/* ── Safety notice ── */}
       <div className="bg-amber-900/20 border border-amber-700/40 rounded-xl px-4 py-3 text-sm text-amber-200 leading-relaxed">
-        <strong className="text-amber-300">⚠ Safety:</strong> Presets are starting points, not final tunes.
-        Every build responds differently. Test at low throttle first, always log with blackbox before and after.
+        <strong className="text-amber-300">⚠ {t('label_safety')}</strong> {t('warning_presets_safety')}
         {hasAnalysis && (
           <span className="text-emerald-300">
-            {' '}Smart adjustments are active based on your uploaded blackbox analysis.
+            {' '}{t('msg_smart_active')}
           </span>
         )}
       </div>
@@ -291,7 +292,7 @@ export default function PresetsPage() {
               <h2 className="text-white font-bold text-base">{sizeMeta.label}</h2>
               {activeSize === inferredFrameClass && (
                 <span className="text-xs bg-emerald-900/50 text-emerald-300 border border-emerald-700/40 px-2 py-0.5 rounded-full">
-                  Your Quad
+                  {t('badge_your_quad')}
                 </span>
               )}
             </div>
@@ -303,7 +304,7 @@ export default function PresetsPage() {
           </div>
           {hasAnalysis && (
             <span className="flex items-center gap-1.5 text-xs text-emerald-300">
-              <Sparkles size={12} /> Smart presets active
+              <Sparkles size={12} /> {t('label_smart_presets_active')}
             </span>
           )}
         </div>
@@ -315,11 +316,10 @@ export default function PresetsPage() {
       {/* ── Footer ── */}
       <div className="border-t border-gray-800 pt-4 text-xs text-gray-500 space-y-2">
         <p>
-          {SIZE_KEYS.length} frame classes · {SIZE_KEYS.length * 4} total presets ·
-          Values suit Betaflight 4.3+. RPM filter will change optimal D-term range.
+          {t('footer_presets_info')}
         </p>
         <p>
-          Looking for rate profiles? Visit the <a href="#/rates" className="text-violet-400 hover:underline">Rate Profiles</a> page for community & custom rates.
+          {t('link_rate_profiles')}? <a href="#/rates" className="text-violet-400 hover:underline">{t('link_rate_profiles')}</a>
         </p>
       </div>
     </div>

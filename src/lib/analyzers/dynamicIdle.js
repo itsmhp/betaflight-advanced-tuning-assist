@@ -153,37 +153,85 @@ export function analyzeDynamicIdle(blackboxData, cliParams) {
   else if (healthScore >= 50) healthLevel = 'Fair';
   else healthLevel = 'Poor';
 
-  // Recommendations
+  // Recommendations with exact values
   const recommendations = [];
   if (!dynIdleConfig.enabled) {
-    recommendations.push('Dynamic Idle is disabled (min_rpm = 0). Enable it for better idle stability and desync protection.');
+    recommendations.push({
+      message: 'Dynamic Idle is disabled (min_rpm = 0). Enable with dyn_idle_min_rpm = 30 for idle stability and desync protection.',
+      param: 'dyn_idle_min_rpm',
+      currentValue: 0,
+      suggestedValue: 30,
+      command: 'set dyn_idle_min_rpm = 30',
+      severity: 'warning',
+    });
   }
   if (desyncRate > 5) {
-    recommendations.push(`Motor desync detected at ${desyncRate.toFixed(1)}% of idle time. Increase dyn_idle_min_rpm by 500-1000.`);
+    const currentMinRpm = dynIdleConfig.minRpm;
+    // Scale increase proportional to desync rate
+    const desyncSeverity = clamp((desyncRate - 5) / 20, 0, 1);
+    const increase = Math.round(5 + 15 * desyncSeverity); // 5-20 RPM units
+    const suggestedMinRpm = clamp(currentMinRpm + increase, 20, 80);
+    recommendations.push({
+      message: `Motor desync at ${desyncRate.toFixed(1)}% of idle time. Increase dyn_idle_min_rpm from ${currentMinRpm} → ${suggestedMinRpm}.`,
+      param: 'dyn_idle_min_rpm',
+      currentValue: currentMinRpm,
+      suggestedValue: suggestedMinRpm,
+      command: `set dyn_idle_min_rpm = ${suggestedMinRpm}`,
+      severity: 'warning',
+    });
   }
   if (avgIdleStability > 30) {
-    recommendations.push('High idle motor variance. Increase dyn_idle_p_gain for tighter RPM control.');
+    const currentPGain = dynIdleConfig.pGain;
+    const stabSeverity = clamp((avgIdleStability - 30) / 40, 0, 1);
+    const increase = Math.round(10 + 20 * stabSeverity);
+    const suggestedPGain = clamp(currentPGain + increase, 30, 100);
+    recommendations.push({
+      message: `High idle motor variance (stddev: ${avgIdleStability.toFixed(1)}). Increase dyn_idle_p_gain from ${currentPGain} → ${suggestedPGain}.`,
+      param: 'dyn_idle_p_gain',
+      currentValue: currentPGain,
+      suggestedValue: suggestedPGain,
+      command: `set dyn_idle_p_gain = ${suggestedPGain}`,
+      severity: 'info',
+    });
   }
   if (transitions.length > 0) {
     const avgResponse = mean(transitions.filter(t => t.responseMs).map(t => t.responseMs));
     if (avgResponse > 50) {
-      recommendations.push('Slow idle-to-flight transition. Increase dyn_idle_max_increase for faster response.');
+      const currentMaxIncrease = dynIdleConfig.maxIncrease;
+      const responseSeverity = clamp((avgResponse - 50) / 100, 0, 1);
+      const increase = Math.round(20 + 30 * responseSeverity);
+      const suggestedMaxIncrease = clamp(currentMaxIncrease + increase, 100, 250);
+      recommendations.push({
+        message: `Slow idle-to-flight transition (avg ${Math.round(avgResponse)}ms). Increase dyn_idle_max_increase from ${currentMaxIncrease} → ${suggestedMaxIncrease}.`,
+        param: 'dyn_idle_max_increase',
+        currentValue: currentMaxIncrease,
+        suggestedValue: suggestedMaxIncrease,
+        command: `set dyn_idle_max_increase = ${suggestedMaxIncrease}`,
+        severity: 'info',
+      });
     }
   }
   if (erpmAnalysis && erpmAnalysis.headroom < 500) {
-    recommendations.push(`Low RPM headroom (${erpmAnalysis.headroom}). Increase dyn_idle_min_rpm for desync protection.`);
+    const currentMinRpm = dynIdleConfig.minRpm;
+    const headroomDeficit = 500 - erpmAnalysis.headroom;
+    const rpmIncrease = Math.round(headroomDeficit / 100); // each unit = ~100 RPM
+    const suggestedMinRpm = clamp(currentMinRpm + rpmIncrease, 20, 80);
+    recommendations.push({
+      message: `Low RPM headroom (${erpmAnalysis.headroom} RPM, min eRPM: ${erpmAnalysis.minErpm}). Increase dyn_idle_min_rpm from ${currentMinRpm} → ${suggestedMinRpm}.`,
+      param: 'dyn_idle_min_rpm',
+      currentValue: currentMinRpm,
+      suggestedValue: suggestedMinRpm,
+      command: `set dyn_idle_min_rpm = ${suggestedMinRpm}`,
+      severity: 'warning',
+    });
   }
 
-  // CLI recommendations
+  // CLI recommendations — aggregate from structured recommendations
   const cliChanges = {};
-  if (!dynIdleConfig.enabled) {
-    cliChanges.dyn_idle_min_rpm = 30;
-  }
-  if (desyncRate > 5 && dynIdleConfig.minRpm < 40) {
-    cliChanges.dyn_idle_min_rpm = Math.min(dynIdleConfig.minRpm + 10, 60);
-  }
-  if (avgIdleStability > 30 && dynIdleConfig.pGain < 80) {
-    cliChanges.dyn_idle_p_gain = Math.min(dynIdleConfig.pGain + 15, 100);
+  for (const rec of recommendations) {
+    if (rec.param && rec.suggestedValue != null) {
+      cliChanges[rec.param] = rec.suggestedValue;
+    }
   }
 
   return {

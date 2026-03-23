@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useData } from '../context/DataContext';
+import { useLang } from '../i18n/LangContext';
 import { analyzeTPA } from '../lib/analyzers/tpaAnalyzer';
 import CLIOutput from '../components/shared/CLIOutput';
 import { ToolHeader, StatCard, NoDataMessage } from '../components/shared/UIComponents';
@@ -7,6 +8,7 @@ import { Gauge } from 'lucide-react';
 
 export default function TPAPage() {
   const { cliParsed, tuningParams, bbParsed } = useData();
+  const { t } = useLang();
 
   const result = useMemo(() => {
     if (!bbParsed || !tuningParams) return null;
@@ -15,7 +17,7 @@ export default function TPAPage() {
   }, [bbParsed, tuningParams]);
 
   if (!cliParsed || !bbParsed) return <NoDataMessage requiresCli requiresBb />;
-  if (!result) return <div className="card text-gray-400">Analysis failed.</div>;
+  if (!result) return <div className="card text-gray-400">{t('analysis_failed')}</div>;
 
   return (
     <div className="fade-in max-w-4xl">
@@ -27,16 +29,16 @@ export default function TPAPage() {
       />
 
       <div className="grid grid-cols-4 gap-3 mb-6">
-        <StatCard label="Detected Breakpoint" value={result.breakpoint ?? '—'} unit="%" color="text-indigo-300" />
-        <StatCard label="TPA Rate" value={result.tpaRate?.toFixed(2) ?? '—'} color="text-purple-300" />
-        <StatCard label="Current Breakpoint" value={tuningParams.tpa?.breakpoint ?? '—'} color="text-cyan-300" />
-        <StatCard label="Confidence" value={result.confidence?.toFixed(0) ?? '—'} unit="%" color="text-green-300" />
+        <StatCard label={t('label_detected_breakpoint')} value={result.breakpoint ?? '—'} unit="%" color="text-indigo-300" />
+        <StatCard label={t('label_tpa_rate')} value={result.tpaRate?.toFixed(2) ?? '—'} color="text-purple-300" />
+        <StatCard label={t('label_current_breakpoint')} value={tuningParams.tpa?.breakpoint ?? '—'} color="text-cyan-300" />
+        <StatCard label={t('label_confidence')} value={result.confidence?.toFixed(0) ?? '—'} unit="%" color="text-green-300" />
       </div>
 
       {/* Detection Methods */}
       {result.methods && (
         <div className="card mb-4">
-          <h3 className="text-sm font-semibold text-gray-300 mb-3">Detection Methods</h3>
+          <h3 className="text-sm font-semibold text-gray-300 mb-3">{t('label_detection_methods')}</h3>
           <div className="grid grid-cols-2 gap-3">
             {result.methods.map((m, i) => (
               <div key={i} className="bg-gray-900/50 rounded p-3">
@@ -54,7 +56,7 @@ export default function TPAPage() {
       {/* D-noise profile */}
       {result.bins && (
         <div className="card mb-4">
-          <h3 className="text-sm font-semibold text-gray-300 mb-3">D-Term Noise vs Throttle</h3>
+          <h3 className="text-sm font-semibold text-gray-300 mb-3">{t('label_dterm_noise_throttle')}</h3>
           <div className="flex items-end gap-0.5 h-32">
             {result.bins.map((bin, i) => {
               const maxVal = Math.max(...result.bins.map(b => b.dNoise || 0));
@@ -79,7 +81,7 @@ export default function TPAPage() {
 
       {result.recommendations && result.recommendations.length > 0 && (
         <div className="card mb-4">
-          <h3 className="text-sm font-semibold text-gray-300 mb-2">Recommendations</h3>
+          <h3 className="text-sm font-semibold text-gray-300 mb-2">{t('label_recommendations')}</h3>
           <ul className="space-y-1">
             {result.recommendations.map((rec, i) => (
               <li key={i} className="text-xs text-gray-400 flex items-start gap-2">

@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useData } from '../context/DataContext';
+import { useLang } from '../i18n/LangContext';
 import { analyzeAdvancedPidHealth } from '../lib/analyzers/advancedPidHealth';
 import CLIOutput from '../components/shared/CLIOutput';
 import { ToolHeader, StatCard, NoDataMessage, HealthBadge } from '../components/shared/UIComponents';
@@ -7,6 +8,7 @@ import { HeartPulse } from 'lucide-react';
 
 export default function AdvancedPIDPage() {
   const { cliParsed, tuningParams, bbParsed } = useData();
+  const { t } = useLang();
 
   const result = useMemo(() => {
     if (!bbParsed || !tuningParams) return null;
@@ -15,7 +17,7 @@ export default function AdvancedPIDPage() {
   }, [bbParsed, tuningParams]);
 
   if (!cliParsed || !bbParsed) return <NoDataMessage requiresCli requiresBb />;
-  if (!result) return <div className="card text-gray-400">Analysis failed.</div>;
+  if (!result) return <div className="card text-gray-400">{t('analysis_failed')}</div>;
 
   const levelColors = { Excellent: 'text-emerald-400', Good: 'text-green-400', Fair: 'text-yellow-400', Poor: 'text-red-400' };
 
@@ -28,9 +30,9 @@ export default function AdvancedPIDPage() {
       />
 
       <div className="grid grid-cols-3 gap-3 mb-6">
-        <StatCard label="Overall Score" value={result.overallScore} unit="/100" color={levelColors[result.healthLevel] || 'text-gray-300'} />
-        <StatCard label="Health Level" value={result.healthLevel} color={levelColors[result.healthLevel] || 'text-gray-300'} />
-        <StatCard label="Sample Rate" value={result.sampleRate} unit="Hz" color="text-violet-300" />
+        <StatCard label={t('label_overall_score')} value={result.overallScore} unit="/100" color={levelColors[result.healthLevel] || 'text-gray-300'} />
+        <StatCard label={t('label_health_level')} value={result.healthLevel} color={levelColors[result.healthLevel] || 'text-gray-300'} />
+        <StatCard label={t('label_sample_rate')} value={result.sampleRate} unit="Hz" color="text-violet-300" />
       </div>
 
       {/* Per-axis breakdown */}
@@ -46,36 +48,36 @@ export default function AdvancedPIDPage() {
               </div>
               <div className="space-y-2 text-xs">
                 <div className="flex justify-between text-gray-400">
-                  <span>P/I/D Balance</span>
+                  <span>{t('label_pid_balance')}</span>
                   <span className="text-gray-200">{a.pRatio}% / {a.iRatio}% / {a.dRatio}%</span>
                 </div>
                 <div className="flex justify-between text-gray-400">
-                  <span>Error RMS</span>
+                  <span>{t('label_error_rms')}</span>
                   <span className="text-orange-300">{a.errorRms}</span>
                 </div>
                 <div className="flex justify-between text-gray-400">
-                  <span>Error P95</span>
+                  <span>{t('label_error_p95')}</span>
                   <span className="text-yellow-300">{a.errorP95}</span>
                 </div>
                 <div className="flex justify-between text-gray-400">
-                  <span>Tracking Response</span>
+                  <span>{t('label_tracking_response')}</span>
                   <span className="text-cyan-300">{a.responseCorrelation}</span>
                 </div>
                 <div className="flex justify-between text-gray-400">
-                  <span>Oscillation Rate</span>
+                  <span>{t('label_oscillation_rate')}</span>
                   <span className="text-pink-300">{a.oscillationRate}/s</span>
                 </div>
                 <div className="flex justify-between text-gray-400">
-                  <span>D-term Noise</span>
+                  <span>{t('label_dterm_noise')}</span>
                   <span className="text-red-300">{a.dNoise}</span>
                 </div>
                 <div className="flex justify-between text-gray-400">
-                  <span>PID Latency</span>
+                  <span>{t('label_pid_latency')}</span>
                   <span className="text-violet-300">{a.latencyMs}ms</span>
                 </div>
                 {/* Saturation bars */}
                 <div className="pt-2 border-t border-gray-700/50">
-                  <p className="text-gray-500 mb-1">Saturation</p>
+                  <p className="text-gray-500 mb-1">{t('label_saturation')}</p>
                   {['P', 'I', 'D'].map(term => {
                     const val = a[`${term.toLowerCase()}Saturation`];
                     return (
@@ -98,7 +100,7 @@ export default function AdvancedPIDPage() {
 
       {result.recommendations?.length > 0 && (
         <div className="card mb-4">
-          <h3 className="text-sm font-semibold text-gray-300 mb-2">Recommendations</h3>
+          <h3 className="text-sm font-semibold text-gray-300 mb-2">{t('label_recommendations')}</h3>
           <ul className="space-y-1">
             {result.recommendations.map((rec, i) => (
               <li key={i} className="text-xs text-gray-400 flex items-start gap-2">

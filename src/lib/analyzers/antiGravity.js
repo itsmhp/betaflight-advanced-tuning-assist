@@ -49,10 +49,10 @@ export function analyzeAntiGravity(blackboxData, cliParams) {
       let recommendation = 'No change needed';
       if (driftMagnitude > 50) {
         severity = 'Critical';
-        recommendation = 'Increase Anti-Gravity gain 20–30%';
+        recommendation = `Drift ${Math.round(driftMagnitude)} °/s — needs significant AG gain increase`;
       } else if (driftMagnitude > 25) {
         severity = 'Warning';
-        recommendation = 'Increase Anti-Gravity gain 10–15%';
+        recommendation = `Drift ${Math.round(driftMagnitude)} °/s — moderate AG gain increase recommended`;
       }
 
       const axisBias = avgRollDrift > 1.5 * avgPitchDrift ? 'Roll biased' :
@@ -84,12 +84,18 @@ export function analyzeAntiGravity(blackboxData, cliParams) {
   const criticalCount = events.filter(e => e.severity === 'Critical').length;
   const warningCount = events.filter(e => e.severity === 'Warning').length;
 
-  // Generate CLI suggestions
+  // Generate CLI suggestions — compute exact gain from measured drift magnitude
   const currentGain = cliParams?.antiGravity?.gain ?? 80;
   let suggestedGain = currentGain;
-  if (avgDrift > 50) suggestedGain = Math.round(currentGain * 1.25);
-  else if (avgDrift > 25) suggestedGain = Math.round(currentGain * 1.12);
-  suggestedGain = clamp(suggestedGain, 20, 250);
+
+  if (avgDrift > 10) {
+    // Target drift < 10 °/s. Scale the gain proportional to how much drift exceeds target.
+    // ratio = current_drift / target_drift → gain should scale proportionally
+    const driftRatio = avgDrift / 10;
+    // Clamp the scaling to avoid extreme jumps; sqrt dampens large ratios
+    const scaleFactor = 1 + (Math.sqrt(driftRatio) - 1) * 0.5;
+    suggestedGain = clamp(Math.round(currentGain * scaleFactor), 20, 250);
+  }
 
   const cliChanges = {};
   if (suggestedGain !== currentGain) {
@@ -99,18 +105,19 @@ export function analyzeAntiGravity(blackboxData, cliParams) {
   // Structured recommendations with before/after values
   const recommendations = [];
   if (suggestedGain !== currentGain) {
+    const pctChange = Math.round(((suggestedGain - currentGain) / currentGain) * 100);
     const dir = suggestedGain > currentGain ? 'Increase' : 'Reduce';
     recommendations.push({
-      message: `${dir} anti_gravity_gain: ${criticalCount} critical / ${warningCount} warning punch events detected. Drift avg = ${Math.round(avgDrift * 10) / 10} °/s.`,
+      message: `${dir} anti_gravity_gain from ${currentGain} → ${suggestedGain} (+${pctChange}%). ${criticalCount} critical, ${warningCount} warning events. Measured avg drift: ${Math.round(avgDrift * 10) / 10} °/s (target < 10 °/s).`,
       param: 'anti_gravity_gain',
       currentValue: currentGain,
       suggestedValue: suggestedGain,
       command: `set anti_gravity_gain = ${suggestedGain}`,
       severity: criticalCount > 0 ? 'critical' : 'warning',
     });
-  } else if (avgDrift < 15) {
+  } else if (avgDrift < 10) {
     recommendations.push({
-      message: `Anti-Gravity gain is well-configured. Avg drift ${Math.round(avgDrift * 10) / 10} °/s — no change needed.`,
+      message: `Anti-Gravity gain ${currentGain} is well-configured. Avg drift ${Math.round(avgDrift * 10) / 10} °/s (target < 10 °/s). No change needed.`,
       param: 'anti_gravity_gain',
       currentValue: currentGain,
       suggestedValue: null,

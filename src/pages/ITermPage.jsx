@@ -1,20 +1,22 @@
 import { useMemo } from 'react';
 import { useData } from '../context/DataContext';
+import { useLang } from '../i18n/LangContext';
 import { analyzeITermBuildup } from '../lib/analyzers/itermBuildup';
 import { ToolHeader, NoDataMessage, HealthBadge, ProgressBar, StatCard } from '../components/shared/UIComponents';
 import { Activity } from 'lucide-react';
 
 export default function ITermPage() {
-  const { bbParsed } = useData();
+  const { bbParsed, tuningParams } = useData();
+  const { t } = useLang();
 
   const result = useMemo(() => {
     if (!bbParsed) return null;
-    try { return analyzeITermBuildup(bbParsed); }
+    try { return analyzeITermBuildup(bbParsed, tuningParams); }
     catch (e) { console.error('ITerm error:', e); return null; }
-  }, [bbParsed]);
+  }, [bbParsed, tuningParams]);
 
   if (!bbParsed) return <NoDataMessage requiresBb />;
-  if (!result) return <div className="card text-gray-400">Analysis failed.</div>;
+  if (!result) return <div className="card text-gray-400">{t('analysis_failed')}</div>;
 
   const axes = ['roll', 'pitch', 'yaw'];
 
@@ -41,19 +43,19 @@ export default function ITermPage() {
               <div className="space-y-3">
                 <div>
                   <div className="flex justify-between text-xs mb-1">
-                    <span className="text-gray-400">Max I-Term</span>
+                    <span className="text-gray-400">{t('label_max_iterm')}</span>
                     <span className={healthColor}>{d.maxValue?.toFixed(0) ?? '—'}</span>
                   </div>
                 </div>
                 <div>
                   <div className="flex justify-between text-xs mb-1">
-                    <span className="text-gray-400">P95 I-Term</span>
+                    <span className="text-gray-400">{t('label_p95_iterm')}</span>
                     <span className="text-gray-300">{d.p95?.toFixed(0) ?? '—'}</span>
                   </div>
                 </div>
                 <div>
                   <div className="flex justify-between text-xs mb-1">
-                    <span className="text-gray-400">Time above |75|</span>
+                    <span className="text-gray-400">{t('label_time_above_75')}</span>
                     <span className="text-gray-300">{((d.highRatio ?? 0) * 100).toFixed(1)}%</span>
                   </div>
                   <ProgressBar
@@ -69,11 +71,11 @@ export default function ITermPage() {
 
       {result.recommendations && result.recommendations.length > 0 && (
         <div className="card">
-          <h3 className="text-sm font-semibold text-gray-300 mb-2">Recommendations</h3>
+          <h3 className="text-sm font-semibold text-gray-300 mb-2">{t('label_recommendations')}</h3>
           <ul className="space-y-1">
             {result.recommendations.map((rec, i) => (
               <li key={i} className="text-xs text-gray-400 flex items-start gap-2">
-                <span className="text-teal-400 mt-0.5">•</span> {rec}
+                <span className="text-teal-400 mt-0.5">•</span> {typeof rec === 'string' ? rec : rec.message}
               </li>
             ))}
           </ul>

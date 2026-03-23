@@ -117,71 +117,120 @@ export function analyzeAdvancedPidHealth(blackboxData, cliParams) {
     const r = axisResults[axis];
     if (r.pSaturation > 5) {
       addRecommendation({
-        message: `${axis}: P-term saturation at ${r.pSaturation}% — consider reducing P gain by 10-15%.`,
+        message: `${axis}: P-term saturation at ${r.pSaturation}% (P RMS: ${r.pRms}, threshold: 400). Reduce P gain to lower saturation.`,
         severity: 'warning',
       });
     }
     if (r.oscillationRate > 400) {
       addRecommendation({
-        message: `${axis}: High oscillation rate (${r.oscillationRate}/s) — reduce P or increase D for damping.`,
+        message: `${axis}: Oscillation rate ${r.oscillationRate}/s (error zero-crossings). P/D ratio: ${r.pRatio}%/${r.dRatio}%.`,
         severity: 'warning',
       });
     }
     if (r.responseCorrelation < 0.5) {
       addRecommendation({
-        message: `${axis}: Poor tracking response (${r.responseCorrelation}) — increase P gain or check mechanical issues.`,
+        message: `${axis}: Tracking response correlation ${r.responseCorrelation} (target > 0.7). Error RMS: ${r.errorRms}, P95: ${r.errorP95}.`,
         severity: 'warning',
       });
     }
     if (r.dNoise > 80) {
       addRecommendation({
-        message: `${axis}: High D-term noise (${r.dNoise}) — lower D or tighten D-term LPF.`,
+        message: `${axis}: D-term noise stddev ${r.dNoise} (threshold: 80). D contribution: ${r.dRatio}%.`,
         severity: 'warning',
       });
     }
     if (r.latencyMs > 3) {
       addRecommendation({
-        message: `${axis}: PID latency ~${r.latencyMs}ms — check loop rate, filter delays.`,
+        message: `${axis}: PID loop latency ${r.latencyMs}ms (measured via cross-correlation). Check gyro rate and filter group delay.`,
         severity: 'info',
       });
     }
     if (r.iRatio > 45) {
       addRecommendation({
-        message: `${axis}: I-term dominant (${r.iRatio}%) — possible slow response, consider increasing P.`,
+        message: `${axis}: I-term dominant at ${r.iRatio}% of total PID (I RMS: ${r.iRms}). Response correlation: ${r.responseCorrelation}.`,
         severity: 'info',
       });
     }
   }
 
-  // CLI suggestions — use correct BF CLI key names: p_roll, i_roll, d_roll, etc.
+  // CLI suggestions — compute exact PID values from measured oscillation/noise data
   const cliChanges = {};
   for (const axis of axes) {
     const r = axisResults[axis];
+    const currentP = cliParams?.pid?.[axis]?.p ?? 50;
+    const currentI = cliParams?.pid?.[axis]?.i ?? 50;
+    const currentD = cliParams?.pid?.[axis]?.d ?? 30;
+
+    // P gain adjustment based on oscillation severity
     if (r.oscillationRate > 400 && r.pRatio > 40) {
-      const currentP = cliParams?.pid?.[axis]?.p ?? 50;
-      const suggestedP = Math.round(currentP * 0.88);
-      cliChanges[`p_${axis}`] = suggestedP;
-      addRecommendation({
-        message: `${axis}: Reduce P gain to calm oscillations.`,
-        param: `p_${axis}`,
-        currentValue: currentP,
-        suggestedValue: suggestedP,
-        command: `set p_${axis} = ${suggestedP}`,
-        severity: 'warning',
-      });
+      // Scale reduction proportional to oscillation severity (400→mild, 800+→severe)
+      const oscSeverity = clamp((r.oscillationRate - 400) / 600, 0, 1);
+      const reductionFactor = 1 - (0.08 + 0.15 * oscSeverity); // 8-23% reduction
+      const suggestedP = clamp(Math.round(currentP * reductionFactor), 15, 200);
+      if (suggestedP !== currentP) {
+        cliChanges[`p_${axis}`] = suggestedP;
+        addRecommendation({
+          message: `${axis}: Oscillation rate ${r.oscillationRate}/s → reduce P from ${currentP} to ${suggestedP} (${Math.round((1 - reductionFactor) * 100)}% reduction based on severity).`,
+          param: `p_${axis}`,
+          currentValue: currentP,
+          suggestedValue: suggestedP,
+          command: `set p_${axis} = ${suggestedP}`,
+          severity: 'warning',
+        });
+      }
+    } else if (r.responseCorrelation < 0.5 && r.oscillationRate < 200) {
+      // Poor tracking with no oscillation → safe to increase P
+      const trackingDeficit = clamp((0.5 - r.responseCorrelation) / 0.4, 0, 1);
+      const increaseFactor = 1 + (0.05 + 0.12 * trackingDeficit); // 5-17% increase
+      const suggestedP = clamp(Math.round(currentP * increaseFactor), 15, 200);
+      if (suggestedP !== currentP) {
+        cliChanges[`p_${axis}`] = suggestedP;
+        addRecommendation({
+          message: `${axis}: Tracking correlation ${r.responseCorrelation} → increase P from ${currentP} to ${suggestedP} for better response.`,
+          param: `p_${axis}`,
+          currentValue: currentP,
+          suggestedValue: suggestedP,
+          command: `set p_${axis} = ${suggestedP}`,
+          severity: 'info',
+        });
+      }
     }
+
+    // D gain adjustment based on D-term noise magnitude
     if (r.dNoise > 80) {
-      const currentD = cliParams?.pid?.[axis]?.d ?? 30;
-      const suggestedD = Math.round(currentD * 0.85);
-      cliChanges[`d_${axis}`] = suggestedD;
-      addRecommendation({
-        message: `${axis}: Reduce D gain to cut D-term noise.`,
-        param: `d_${axis}`,
-        currentValue: currentD,
-        suggestedValue: suggestedD,
-        command: `set d_${axis} = ${suggestedD}`,
-        severity: 'warning',
-      });
+      // Scale reduction proportional to noise level (80→mild, 200+→severe)
+      const noiseSeverity = clamp((r.dNoise - 80) / 150, 0, 1);
+      const reductionFactor = 1 - (0.10 + 0.20 * noiseSeverity); // 10-30% reduction
+      const suggestedD = clamp(Math.round(currentD * reductionFactor), 10, 150);
+      if (suggestedD !== currentD) {
+        cliChanges[`d_${axis}`] = suggestedD;
+        addRecommendation({
+          message: `${axis}: D-term noise RMS ${r.dNoise} → reduce D from ${currentD} to ${suggestedD} (${Math.round((1 - reductionFactor) * 100)}% reduction).`,
+          param: `d_${axis}`,
+          currentValue: currentD,
+          suggestedValue: suggestedD,
+          command: `set d_${axis} = ${suggestedD}`,
+          severity: 'warning',
+        });
+      }
+    }
+
+    // I gain adjustment based on I-term dominance
+    if (r.iRatio > 45 && r.responseCorrelation < 0.6) {
+      const iExcess = clamp((r.iRatio - 45) / 20, 0, 1);
+      const reductionFactor = 1 - (0.05 + 0.10 * iExcess);
+      const suggestedI = clamp(Math.round(currentI * reductionFactor), 10, 200);
+      if (suggestedI !== currentI) {
+        cliChanges[`i_${axis}`] = suggestedI;
+        addRecommendation({
+          message: `${axis}: I-term dominant at ${r.iRatio}% with poor tracking → reduce I from ${currentI} to ${suggestedI}.`,
+          param: `i_${axis}`,
+          currentValue: currentI,
+          suggestedValue: suggestedI,
+          command: `set i_${axis} = ${suggestedI}`,
+          severity: 'info',
+        });
+      }
     }
   }
 

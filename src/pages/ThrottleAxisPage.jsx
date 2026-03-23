@@ -1,11 +1,13 @@
 import { useMemo } from 'react';
 import { useData } from '../context/DataContext';
+import { useLang } from '../i18n/LangContext';
 import { analyzeThrottleAxis } from '../lib/analyzers/throttleAxis';
 import { ToolHeader, StatCard, NoDataMessage, ProgressBar } from '../components/shared/UIComponents';
 import { RotateCcw } from 'lucide-react';
 
 export default function ThrottleAxisPage() {
   const { bbParsed } = useData();
+  const { t } = useLang();
 
   const result = useMemo(() => {
     if (!bbParsed) return null;
@@ -14,7 +16,7 @@ export default function ThrottleAxisPage() {
   }, [bbParsed]);
 
   if (!bbParsed) return <NoDataMessage requiresBb />;
-  if (!result) return <div className="card text-gray-400">Analysis failed.</div>;
+  if (!result) return <div className="card text-gray-400">{t('analysis_failed')}</div>;
 
   const axes = ['roll', 'pitch', 'yaw'];
 
@@ -27,23 +29,23 @@ export default function ThrottleAxisPage() {
       />
 
       <div className="grid grid-cols-4 gap-3 mb-6">
-        <StatCard label="Hover Throttle" value={result.hoverThrottle ? `${(result.hoverThrottle * 100).toFixed(0)}` : '—'} unit="%" color="text-amber-300" />
-        <StatCard label="Peak Throttle" value={result.throttleStats?.peak ? `${(result.throttleStats.peak * 100).toFixed(0)}` : '—'} unit="%" color="text-red-300" />
-        <StatCard label="Avg Max" value={result.throttleStats?.avgMax ? `${(result.throttleStats.avgMax * 100).toFixed(0)}` : '—'} unit="%" color="text-orange-300" />
-        <StatCard label="Flight Style" value={result.flightStyle ?? '—'} color="text-cyan-300" />
+        <StatCard label={t('label_hover_throttle')} value={result.hoverThrottle ? `${(result.hoverThrottle * 100).toFixed(0)}` : '—'} unit="%" color="text-amber-300" />
+        <StatCard label={t('label_peak_throttle')} value={result.throttleStats?.peak ? `${(result.throttleStats.peak * 100).toFixed(0)}` : '—'} unit="%" color="text-red-300" />
+        <StatCard label={t('label_avg_max')} value={result.throttleStats?.avgMax ? `${(result.throttleStats.avgMax * 100).toFixed(0)}` : '—'} unit="%" color="text-orange-300" />
+        <StatCard label={t('label_flight_style')} value={result.flightStyle ?? '—'} color="text-cyan-300" />
       </div>
 
       {/* Hover info */}
       {result.hoverThrottle && (
         <div className="card mb-4">
-          <h3 className="text-sm font-semibold text-gray-300 mb-2">Hover Detection</h3>
+          <h3 className="text-sm font-semibold text-gray-300 mb-2">{t('label_hover_detection')}</h3>
           <div className="grid grid-cols-2 gap-4 text-xs">
             <div>
-              <span className="text-gray-400">Method: </span>
-              <span className="text-gray-200">{result.hoverMethod ?? 'Statistical'}</span>
+              <span className="text-gray-400">{t('label_method')}: </span>
+              <span className="text-gray-200">{result.hoverMethod ?? t('method_statistical')}</span>
             </div>
             <div>
-              <span className="text-gray-400">Full Throttle Time: </span>
+              <span className="text-gray-400">{t('label_full_throttle_time')}: </span>
               <span className="text-gray-200">{((result.throttleStats?.fullThrottleTime ?? 0) * 100).toFixed(1)}%</span>
             </div>
           </div>
@@ -52,7 +54,7 @@ export default function ThrottleAxisPage() {
 
       {/* Axis usage */}
       <div className="card mb-4">
-        <h3 className="text-sm font-semibold text-gray-300 mb-3">Axis Usage</h3>
+        <h3 className="text-sm font-semibold text-gray-300 mb-3">{t('label_axis_usage')}</h3>
         <div className="space-y-4">
           {axes.map(axis => {
             const d = result.axisUsage?.[axis];
@@ -72,7 +74,7 @@ export default function ThrottleAxisPage() {
 
       {result.recommendations && result.recommendations.length > 0 && (
         <div className="card">
-          <h3 className="text-sm font-semibold text-gray-300 mb-2">Recommendations</h3>
+          <h3 className="text-sm font-semibold text-gray-300 mb-2">{t('label_recommendations')}</h3>
           <ul className="space-y-1">
             {result.recommendations.map((rec, i) => (
               <li key={i} className="text-xs text-gray-400 flex items-start gap-2">

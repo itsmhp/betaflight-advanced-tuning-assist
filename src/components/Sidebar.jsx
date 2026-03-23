@@ -95,7 +95,7 @@ export default function Sidebar() {
           className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs text-gray-400 hover:bg-violet-900/20 hover:text-gray-200 transition-colors"
         >
           <Cpu size={13} className="text-cyan-400 flex-shrink-0"/>
-          <span className="flex-1 text-left truncate">{droneProfile?.name || 'No Drone'}</span>
+          <span className="flex-1 text-left truncate">{droneProfile?.name || t('sidebar_no_drone')}</span>
           <ChevronDown size={12} className={`transition-transform ${droneOpen ? 'rotate-180' : ''}`}/>
         </button>
         {droneOpen && (
@@ -111,15 +111,15 @@ export default function Sidebar() {
                 }`}
               >
                 <Cpu size={11} className={p.id === activeDroneId ? 'text-violet-400' : 'text-gray-600'}/>
-                <span className="truncate">{p.name || 'Unnamed'}</span>
-                {p.id === activeDroneId && <span className="ml-auto text-[9px] text-violet-500 font-medium">ACTIVE</span>}
+                <span className="truncate">{p.name || t('sidebar_unnamed')}</span>
+                {p.id === activeDroneId && <span className="ml-auto text-[9px] text-violet-500 font-medium">{t('sidebar_active')}</span>}
               </button>
             ))}
             <button
               onClick={() => { addDroneProfile({ name: `Drone ${profiles.length + 1}` }); setDroneOpen(false); navigate('/my-drone'); }}
               className="w-full flex items-center gap-2 px-3 py-2 text-xs text-left text-cyan-400 hover:bg-violet-900/20 transition-colors border-t border-violet-900/30"
             >
-              <Plus size={11}/> Add New Drone
+              <Plus size={11}/> {t('sidebar_add_drone')}
             </button>
           </div>
         )}

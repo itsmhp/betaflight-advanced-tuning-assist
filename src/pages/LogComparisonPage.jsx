@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { BarChart3, Upload, RefreshCw, Trash2, CheckCircle2, AlertTriangle, Loader2, Copy } from 'lucide-react';
 import { useData } from '../context/DataContext';
+import { useLang } from '../i18n/LangContext';
 import { runAllAnalyzers, computeOverallScore } from '../lib/analyzeAll';
 import { parseBlackboxCSV } from '../lib/blackboxParser';
 import { decodeBBL, isBBLFile } from '../lib/bblDecoder';
@@ -51,6 +52,7 @@ export default function LogComparisonPage() {
     setBaselineLabel,
     setComparisonLabel,
   } = useData();
+  const { t } = useLang();
 
   const [baselineLocal, setBaselineLocal] = useState(null);
   const [comparisonLocal, setComparisonLocal] = useState(comparisonBlackboxData || null);
@@ -113,13 +115,13 @@ export default function LogComparisonPage() {
     const afterOverall = computeOverallScore(afterResults);
 
     const baseRows = [
-      { label: 'Overall Health Score', before: beforeOverall, after: afterOverall, inverse: false },
-      { label: 'Gyro Noise (Noise Profile Score)', before: getScore(beforeResults, 'noise_profile'), after: getScore(afterResults, 'noise_profile'), inverse: false },
-      { label: 'D-term / Filter Quality', before: getScore(beforeResults, 'filter_analyzer'), after: getScore(afterResults, 'filter_analyzer'), inverse: false },
-      { label: 'PID Stability', before: getScore(beforeResults, 'advanced_pid'), after: getScore(afterResults, 'advanced_pid'), inverse: false },
-      { label: 'Propwash Handling', before: getScore(beforeResults, 'prop_wash'), after: getScore(afterResults, 'prop_wash'), inverse: false },
-      { label: 'Motor Health', before: getScore(beforeResults, 'motor_doctor'), after: getScore(afterResults, 'motor_doctor'), inverse: false },
-      { label: 'Feedforward Tracking', before: getScore(beforeResults, 'feedforward'), after: getScore(afterResults, 'feedforward'), inverse: false },
+      { label: t('label_overall_health_score'), before: beforeOverall, after: afterOverall, inverse: false },
+      { label: t('label_gyro_noise'), before: getScore(beforeResults, 'noise_profile'), after: getScore(afterResults, 'noise_profile'), inverse: false },
+      { label: t('label_dterm_filter'), before: getScore(beforeResults, 'filter_analyzer'), after: getScore(afterResults, 'filter_analyzer'), inverse: false },
+      { label: t('label_pid_stability'), before: getScore(beforeResults, 'advanced_pid'), after: getScore(afterResults, 'advanced_pid'), inverse: false },
+      { label: t('label_propwash_handling'), before: getScore(beforeResults, 'prop_wash'), after: getScore(afterResults, 'prop_wash'), inverse: false },
+      { label: t('label_motor_health'), before: getScore(beforeResults, 'motor_doctor'), after: getScore(afterResults, 'motor_doctor'), inverse: false },
+      { label: t('label_ff_tracking'), before: getScore(beforeResults, 'feedforward'), after: getScore(afterResults, 'feedforward'), inverse: false },
     ];
 
     return baseRows.map((row) => ({ ...row, delta: formatDelta(row.before, row.after, row.inverse) }));
@@ -146,13 +148,13 @@ export default function LogComparisonPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-gray-800/40 border border-gray-700/40 rounded-xl p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-gray-200">Baseline Log</h3>
+            <h3 className="text-sm font-semibold text-gray-200">{t('label_baseline_log')}</h3>
             <input value={baselineLabel} onChange={(e) => setBaselineLabel(e.target.value)} className="text-xs bg-gray-900 border border-gray-700 rounded px-2 py-1 text-gray-300 w-24" />
           </div>
-          <p className="text-xs text-gray-500">{baselineName || 'Using current loaded blackbox'}</p>
+          <p className="text-xs text-gray-500">{baselineName || t('status_current_baseline')}</p>
           <div className="flex flex-wrap gap-2">
             <label className="text-xs bg-violet-700 hover:bg-violet-600 text-white px-3 py-1.5 rounded-lg cursor-pointer inline-flex items-center gap-1.5">
-              <Upload size={12} /> Upload New
+              <Upload size={12} /> {t('btn_upload_new')}
               <input type="file" className="hidden" accept=".bbl,.bfl,.csv,.txt" onChange={(e) => e.target.files?.[0] && onUploadBaseline(e.target.files[0])} />
             </label>
             <button
@@ -162,20 +164,20 @@ export default function LogComparisonPage() {
               }}
               className="text-xs bg-gray-700 hover:bg-gray-600 text-gray-200 px-3 py-1.5 rounded-lg"
             >
-              Use Current
+              {t('btn_use_current')}
             </button>
           </div>
         </div>
 
         <div className="bg-gray-800/40 border border-gray-700/40 rounded-xl p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-gray-200">Comparison Log</h3>
+            <h3 className="text-sm font-semibold text-gray-200">{t('label_comparison_log')}</h3>
             <input value={comparisonLabel} onChange={(e) => setComparisonLabel(e.target.value)} className="text-xs bg-gray-900 border border-gray-700 rounded px-2 py-1 text-gray-300 w-24" />
           </div>
-          <p className="text-xs text-gray-500">{comparisonName || 'Upload post-tune log'}</p>
+          <p className="text-xs text-gray-500">{comparisonName || t('status_post_tune')}</p>
           <div className="flex flex-wrap gap-2">
             <label className="text-xs bg-cyan-700 hover:bg-cyan-600 text-white px-3 py-1.5 rounded-lg cursor-pointer inline-flex items-center gap-1.5">
-              <Upload size={12} /> Upload
+              <Upload size={12} /> {t('btn_upload')}
               <input type="file" className="hidden" accept=".bbl,.bfl,.csv,.txt" onChange={(e) => e.target.files?.[0] && onUploadComparison(e.target.files[0])} />
             </label>
             <button
@@ -186,7 +188,7 @@ export default function LogComparisonPage() {
               }}
               className="text-xs bg-gray-700 hover:bg-gray-600 text-gray-200 px-3 py-1.5 rounded-lg inline-flex items-center gap-1.5"
             >
-              <Trash2 size={12} /> Clear
+              <Trash2 size={12} /> {t('btn_clear')}
             </button>
           </div>
         </div>
@@ -198,11 +200,11 @@ export default function LogComparisonPage() {
           disabled={!hasBothLogs || loading}
           className="text-sm bg-violet-700 hover:bg-violet-600 disabled:opacity-40 text-white px-4 py-2 rounded-xl inline-flex items-center gap-2"
         >
-          {loading ? <><Loader2 size={14} className="animate-spin" /> Running analyzers...</> : <><RefreshCw size={14} /> Overlay Compare</>}
+          {loading ? <><Loader2 size={14} className="animate-spin" /> {t('status_running_analyzers')}</> : <><RefreshCw size={14} /> {t('btn_overlay_compare')}</>}
         </button>
         {!!rows.length && (
           <button onClick={copySummary} className="text-sm bg-gray-700 hover:bg-gray-600 text-gray-200 px-4 py-2 rounded-xl inline-flex items-center gap-2">
-            <Copy size={14} /> Export Comparison Summary
+            <Copy size={14} /> {t('btn_export_summary')}
           </button>
         )}
       </div>
@@ -218,18 +220,18 @@ export default function LogComparisonPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="text-gray-500 border-b border-gray-700/40">
-                <th className="text-left px-4 py-3">Metric</th>
+                <th className="text-left px-4 py-3">{t('header_metric')}</th>
                 <th className="text-right px-4 py-3">{baselineLabel}</th>
                 <th className="text-right px-4 py-3">{comparisonLabel}</th>
-                <th className="text-right px-4 py-3">Change</th>
+                <th className="text-right px-4 py-3">{t('header_change')}</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((row) => (
                 <tr key={row.label} className="border-b border-gray-800/40">
                   <td className="px-4 py-2.5 text-gray-200">{row.label}</td>
-                  <td className="px-4 py-2.5 text-right text-gray-400">{row.before ?? 'N/A'}</td>
-                  <td className="px-4 py-2.5 text-right text-gray-300">{row.after ?? 'N/A'}</td>
+                  <td className="px-4 py-2.5 text-right text-gray-400">{row.before ?? t('status_na')}</td>
+                  <td className="px-4 py-2.5 text-right text-gray-300">{row.after ?? t('status_na')}</td>
                   <td className="px-4 py-2.5 text-right">
                     {row.delta.improved === null ? (
                       <span className="text-gray-500">{row.delta.text}</span>

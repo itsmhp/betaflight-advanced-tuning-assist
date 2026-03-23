@@ -1,20 +1,22 @@
 import { useMemo } from 'react';
 import { useData } from '../context/DataContext';
+import { useLang } from '../i18n/LangContext';
 import { analyzePIDContribution } from '../lib/analyzers/pidContribution';
 import { ToolHeader, NoDataMessage, ProgressBar } from '../components/shared/UIComponents';
 import { BarChart3 } from 'lucide-react';
 
 export default function PIDContributionPage() {
-  const { bbParsed } = useData();
+  const { bbParsed, tuningParams } = useData();
+  const { t } = useLang();
 
   const result = useMemo(() => {
     if (!bbParsed) return null;
-    try { return analyzePIDContribution(bbParsed); }
+    try { return analyzePIDContribution(bbParsed, tuningParams); }
     catch (e) { console.error('PIDContrib error:', e); return null; }
-  }, [bbParsed]);
+  }, [bbParsed, tuningParams]);
 
   if (!bbParsed) return <NoDataMessage requiresBb />;
-  if (!result) return <div className="card text-gray-400">Analysis failed.</div>;
+  if (!result) return <div className="card text-gray-400">{t('analysis_failed')}</div>;
 
   const axes = ['roll', 'pitch', 'yaw'];
   const termColors = { P: 'cyan', I: 'green', D: 'yellow', F: 'pink' };
@@ -51,7 +53,7 @@ export default function PIDContributionPage() {
                 })}
               </div>
               {d.dTermWarning && (
-                <p className="text-xs text-red-400 mt-3">⚠ D-term is high — check for noise or reduce D</p>
+                <p className="text-xs text-red-400 mt-3">{t('warning_dterm_high')}</p>
               )}
             </div>
           );
@@ -60,11 +62,11 @@ export default function PIDContributionPage() {
 
       {result.recommendations && result.recommendations.length > 0 && (
         <div className="card">
-          <h3 className="text-sm font-semibold text-gray-300 mb-2">Recommendations</h3>
+          <h3 className="text-sm font-semibold text-gray-300 mb-2">{t('label_recommendations')}</h3>
           <ul className="space-y-1">
             {result.recommendations.map((rec, i) => (
               <li key={i} className="text-xs text-gray-400 flex items-start gap-2">
-                <span className="text-green-400 mt-0.5">•</span> {rec}
+                <span className="text-green-400 mt-0.5">•</span> {typeof rec === 'string' ? rec : rec.message}
               </li>
             ))}
           </ul>

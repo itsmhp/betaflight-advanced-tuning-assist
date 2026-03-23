@@ -1,7 +1,7 @@
 // ─── 14. Noise Profile Tool ───
 import { magnitudeSpectrum, hanning, hamming, toDb, mean, rms, stddev, clamp, pearsonCorrelation, nextPow2 } from '../utils.js';
 
-export function analyzeNoiseProfile(blackboxData) {
+export function analyzeNoiseProfile(blackboxData, cliParams) {
   const data = blackboxData.data;
   const sampleRate = blackboxData.sampleRate || 2000;
 
@@ -149,20 +149,102 @@ export function analyzeNoiseProfile(blackboxData) {
 
   const healthScore = clamp(Math.round(100 - avgNoiseRms * 1.5), 0, 100);
 
-  // Recommendations
+  // Recommendations with exact CLI values
   const recommendations = [];
+  const cliChanges = {};
+
+  // Read current filter settings
+  const currentGyroLpf = cliParams?.gyroLpf1?.staticHz ?? 200;
+  const currentDtermLpf = cliParams?.dtermLpf1?.staticHz ?? 150;
+  const currentDynNotchMin = cliParams?.dynNotch?.minHz ?? 150;
+  const currentDynNotchMax = cliParams?.dynNotch?.maxHz ?? 600;
+
   if (noiseLevel === 'Noisy') {
-    recommendations.push('Significant noise detected. Check props, motor bearings, and frame integrity.');
-    recommendations.push('Enable or tune RPM filtering if using bidirectional DShot.');
-    recommendations.push('Consider lowering gyro LPF and D-term LPF cutoff frequencies.');
+    // Compute exact LPF cutoff from dominant noise band edge
+    const allPeaks = [...rollProfile.peaks, ...pitchProfile.peaks, ...yawProfile.peaks];
+    const lowestSignificantPeak = allPeaks.length > 0 ? Math.min(...allPeaks.map(p => p.frequency)) : 300;
+    const suggestedGyroLpf = clamp(Math.round(lowestSignificantPeak * 0.7), 80, 300);
+    const suggestedDtermLpf = clamp(Math.round(suggestedGyroLpf * 0.75), 60, 250);
+
+    if (suggestedGyroLpf < currentGyroLpf) {
+      cliChanges.gyro_lpf1_static_hz = suggestedGyroLpf;
+      recommendations.push({
+        message: `Significant noise (RMS: ${avgNoiseRms}). Lower gyro_lpf1_static_hz from ${currentGyroLpf} → ${suggestedGyroLpf} (lowest noise peak at ${lowestSignificantPeak}Hz).`,
+        param: 'gyro_lpf1_static_hz',
+        currentValue: currentGyroLpf,
+        suggestedValue: suggestedGyroLpf,
+        command: `set gyro_lpf1_static_hz = ${suggestedGyroLpf}`,
+        severity: 'warning',
+      });
+    }
+    if (suggestedDtermLpf < currentDtermLpf) {
+      cliChanges.dterm_lpf1_static_hz = suggestedDtermLpf;
+      recommendations.push({
+        message: `Lower dterm_lpf1_static_hz from ${currentDtermLpf} → ${suggestedDtermLpf} to reduce D-term noise amplification.`,
+        param: 'dterm_lpf1_static_hz',
+        currentValue: currentDtermLpf,
+        suggestedValue: suggestedDtermLpf,
+        command: `set dterm_lpf1_static_hz = ${suggestedDtermLpf}`,
+        severity: 'warning',
+      });
+    }
   } else if (noiseLevel === 'Moderate') {
-    recommendations.push('Moderate noise profile. Fine-tune dynamic notch and LPF settings.');
+    const suggestedGyroLpf = clamp(Math.round(currentGyroLpf * 0.9), 80, 300);
+    if (suggestedGyroLpf < currentGyroLpf) {
+      cliChanges.gyro_lpf1_static_hz = suggestedGyroLpf;
+      recommendations.push({
+        message: `Moderate noise (RMS: ${avgNoiseRms}). Fine-tune gyro_lpf1_static_hz from ${currentGyroLpf} → ${suggestedGyroLpf}.`,
+        param: 'gyro_lpf1_static_hz',
+        currentValue: currentGyroLpf,
+        suggestedValue: suggestedGyroLpf,
+        command: `set gyro_lpf1_static_hz = ${suggestedGyroLpf}`,
+        severity: 'info',
+      });
+    }
   }
+
+  // Dynamic notch recommendations based on detected peaks
+  const allPeaks = [...rollProfile.peaks, ...pitchProfile.peaks, ...yawProfile.peaks];
+  const significantPeakFreqs = allPeaks.filter(p => p.frequency > 50 && p.frequency < 600).map(p => p.frequency);
+  if (significantPeakFreqs.length > 0) {
+    const suggestedDynNotchMin = clamp(Math.min(...significantPeakFreqs) - 30, 40, 300);
+    const suggestedDynNotchMax = clamp(Math.max(...significantPeakFreqs) + 50, 200, 800);
+
+    if (Math.abs(suggestedDynNotchMin - currentDynNotchMin) > 20) {
+      cliChanges.dyn_notch_min_hz = suggestedDynNotchMin;
+      recommendations.push({
+        message: `Adjust dyn_notch_min_hz from ${currentDynNotchMin} → ${suggestedDynNotchMin} (lowest peak at ${Math.min(...significantPeakFreqs)}Hz).`,
+        param: 'dyn_notch_min_hz',
+        currentValue: currentDynNotchMin,
+        suggestedValue: suggestedDynNotchMin,
+        command: `set dyn_notch_min_hz = ${suggestedDynNotchMin}`,
+        severity: 'info',
+      });
+    }
+    if (Math.abs(suggestedDynNotchMax - currentDynNotchMax) > 30) {
+      cliChanges.dyn_notch_max_hz = suggestedDynNotchMax;
+      recommendations.push({
+        message: `Adjust dyn_notch_max_hz from ${currentDynNotchMax} → ${suggestedDynNotchMax} (highest peak at ${Math.max(...significantPeakFreqs)}Hz).`,
+        param: 'dyn_notch_max_hz',
+        currentValue: currentDynNotchMax,
+        suggestedValue: suggestedDynNotchMax,
+        command: `set dyn_notch_max_hz = ${suggestedDynNotchMax}`,
+        severity: 'info',
+      });
+    }
+  }
+
   if (noiseSources.some(s => s.source === 'Electrical Noise')) {
-    recommendations.push('Electrical noise detected. Check ESC shielding and power filtering.');
+    recommendations.push({
+      message: `Electrical noise detected (250-500Hz). Check ESC shielding and power filtering.`,
+      severity: 'info',
+    });
   }
   if (filterEffectiveness && filterEffectiveness.reductionPercent < 30) {
-    recommendations.push('Filter effectiveness is low — filters may be too relaxed or noise sources are in-band.');
+    recommendations.push({
+      message: `Filter effectiveness low (${filterEffectiveness.reductionPercent}% reduction). Filters may be too relaxed or noise is in-band.`,
+      severity: 'info',
+    });
   }
 
   return {
@@ -176,6 +258,7 @@ export function analyzeNoiseProfile(blackboxData) {
     healthScore,
     avgNoiseRms: Math.round(avgNoiseRms * 10) / 10,
     recommendations,
+    cliChanges,
     sampleRate
   };
 }

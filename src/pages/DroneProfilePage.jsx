@@ -9,6 +9,7 @@ import {
   FRAME_SIZES, MOTOR_STATORS, PROP_SIZES, BATTERY_CELLS, FLYING_STYLES, ESC_PROTOCOLS
 } from '../context/DroneProfileContext';
 import { parseCLIDump } from '../lib/cliParser';
+import { useLang } from '../i18n/LangContext';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 function Field({ label, hint, children }) {
@@ -293,6 +294,7 @@ export default function DroneProfilePage() {
     profiles, activeDroneId, droneProfile,
     switchDrone, addDroneProfile, updateDroneProfile, deleteDroneProfile, duplicateDroneProfile,
   } = useDroneProfile();
+  const { t } = useLang();
 
   const [editingId, setEditingId] = useState(null);
   const [saved, setSaved] = useState(false);
@@ -351,11 +353,11 @@ export default function DroneProfilePage() {
         {/* ── Identity ── */}
         <div className="bg-gray-800/40 border border-gray-700 rounded-xl p-5 space-y-5">
           <h2 className="text-sm font-semibold text-gray-300 flex items-center gap-2">
-            <Cpu size={14} className="text-cyan-400"/> Identity
+            <Cpu size={14} className="text-cyan-400"/> {t('section_identity')}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="Drone Name" hint="Give your drone a recognizable name">
-              <TextInput value={editingDrone.name} onChange={v => updateField('name', v)} placeholder="e.g. Race Quad 5inch"/>
+            <Field label={t('field_drone_name')} hint={t('hint_drone_name')}>
+              <TextInput value={editingDrone.name} onChange={v => updateField('name', v)} placeholder={t('placeholder_drone_name')}/>
             </Field>
             <Field label="Flying Style">
               <FlexibleInput value={editingDrone.flying_style} onChange={v => updateField('flying_style', v)} options={FLYING_STYLES} placeholder="Select style…"/>
@@ -366,21 +368,21 @@ export default function DroneProfilePage() {
         {/* ── Frame & Props ── */}
         <div className="bg-gray-800/40 border border-gray-700 rounded-xl p-5 space-y-5">
           <h2 className="text-sm font-semibold text-gray-300 flex items-center gap-2">
-            <Settings size={14} className="text-violet-400"/> Frame & Props
+            <Settings size={14} className="text-violet-400"/> {t('section_frame_props')}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="Frame Size" hint="Measured by prop size / diagonal">
+            <Field label={t('field_frame_size')} hint={t('hint_frame_size')}>
               <FlexibleInput value={editingDrone.frame_size} onChange={v => updateField('frame_size', v)} options={FRAME_SIZES} placeholder="Select frame size…" customPlaceholder="e.g. 5.5inch custom"/>
             </Field>
-            <Field label="All-Up Weight" hint="Includes battery (AUW)">
-              <NumberInput value={editingDrone.weight} onChange={v => updateField('weight', v)} min={20} max={5000} placeholder="e.g. 520" suffix="g"/>
+            <Field label={t('field_auw')} hint={t('hint_auw')}>
+              <NumberInput value={editingDrone.weight} onChange={v => updateField('weight', v)} min={20} max={5000} placeholder="e.g. 520" suffix={t('unit_grams')}/>
             </Field>
-            <Field label="Prop Size" hint="Diameter × pitch">
+            <Field label={t('field_prop_size')} hint={t('hint_prop_size')}>
               <FlexibleInput value={editingDrone.propeller?.diameter} onChange={v => updateField('propeller.diameter', v)} options={PROP_SIZES} placeholder="Select prop size…" customPlaceholder="e.g. 5145"/>
             </Field>
-            <Field label="Blade Count">
+            <Field label={t('field_blade_count')}>
               <FlexibleInput value={editingDrone.propeller?.blade_count} onChange={v => updateField('propeller.blade_count', v)}
-                options={[{value:'2',label:'2 blades'},{value:'3',label:'3 blades'},{value:'4',label:'4 blades'}]}
+                options={[{value:'2',label:t('option_blades_2')},{value:'3',label:t('option_blades_3')},{value:'4',label:t('option_blades_4')}]}
                 placeholder="Blade count…"/>
             </Field>
           </div>
@@ -389,13 +391,13 @@ export default function DroneProfilePage() {
         {/* ── Motor ── */}
         <div className="bg-gray-800/40 border border-gray-700 rounded-xl p-5 space-y-5">
           <h2 className="text-sm font-semibold text-gray-300 flex items-center gap-2">
-            <Gauge size={14} className="text-orange-400"/> Motor
+            <Gauge size={14} className="text-orange-400"/> {t('section_motor')}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="Motor KV" hint="Revolutions per volt at no load">
-              <NumberInput value={editingDrone.motor?.kv} onChange={v => updateField('motor.kv', v)} min={500} max={12000} placeholder="e.g. 1960" suffix="KV"/>
+            <Field label={t('field_motor_kv')} hint={t('hint_motor_kv')}>
+              <NumberInput value={editingDrone.motor?.kv} onChange={v => updateField('motor.kv', v)} min={500} max={12000} placeholder="e.g. 1960" suffix={t('unit_kv')}/>
             </Field>
-            <Field label="Motor Brand / Model" hint="Optional">
+            <Field label={t('field_motor_brand')} hint={t('hint_optional')}>
               <TextInput value={editingDrone.motor?.brand} onChange={v => updateField('motor.brand', v)} placeholder="e.g. EMAX ECO II 2207"/>
             </Field>
           </div>
@@ -404,14 +406,14 @@ export default function DroneProfilePage() {
         {/* ── Battery ── */}
         <div className="bg-gray-800/40 border border-gray-700 rounded-xl p-5 space-y-5">
           <h2 className="text-sm font-semibold text-gray-300 flex items-center gap-2">
-            <Battery size={14} className="text-green-400"/> Battery
+            <Battery size={14} className="text-green-400"/> {t('section_battery')}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="Battery Cells" hint="1S–6S">
+            <Field label={t('field_battery_cells')} hint="1S–6S">
               <FlexibleInput value={editingDrone.battery?.cells} onChange={v => updateField('battery.cells', v)} options={BATTERY_CELLS} placeholder="Select cell count…"/>
             </Field>
-            <Field label="Capacity (mAh)">
-              <NumberInput value={editingDrone.battery?.mah} onChange={v => updateField('battery.mah', v)} min={100} max={10000} placeholder="e.g. 1300" suffix="mAh"/>
+            <Field label={t('field_battery_capacity')}>
+              <NumberInput value={editingDrone.battery?.mah} onChange={v => updateField('battery.mah', v)} min={100} max={10000} placeholder="e.g. 1300" suffix={t('unit_mah')}/>
             </Field>
           </div>
         </div>
@@ -419,19 +421,19 @@ export default function DroneProfilePage() {
         {/* ── Electronics ── */}
         <div className="bg-gray-800/40 border border-gray-700 rounded-xl p-5 space-y-5">
           <h2 className="text-sm font-semibold text-gray-300 flex items-center gap-2">
-            <Zap size={14} className="text-fuchsia-400"/> Electronics
+            <Zap size={14} className="text-fuchsia-400"/> {t('section_electronics')}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="FC Name" hint="Flight controller model">
+            <Field label={t('field_fc_name')} hint={t('hint_fc_model')}>
               <TextInput value={editingDrone.fc?.model} onChange={v => updateField('fc.model', v)} placeholder="e.g. Foxeer F745"/>
             </Field>
-            <Field label="ESC Name" hint="ESC model">
+            <Field label={t('field_esc_name')} hint={t('hint_esc_model')}>
               <TextInput value={editingDrone.esc?.model} onChange={v => updateField('esc.model', v)} placeholder="e.g. Foxeer Reaper 45A"/>
             </Field>
-            <Field label="ESC Protocol">
+            <Field label={t('field_esc_protocol')}>
               <FlexibleInput value={editingDrone.esc?.protocol} onChange={v => updateField('esc.protocol', v)} options={ESC_PROTOCOLS} placeholder="Select protocol…"/>
             </Field>
-            <Field label="Betaflight Version">
+            <Field label={t('field_bf_version')}>
               <FlexibleInput value={editingDrone.fc?.betaflight_version} onChange={v => updateField('fc.betaflight_version', v)}
                 options={[{value:'4.4',label:'4.4.x'},{value:'4.3',label:'4.3.x'},{value:'4.2',label:'4.2.x'},{value:'4.5',label:'4.5.x (dev)'}]}
                 placeholder="Select version…"/>
@@ -441,7 +443,7 @@ export default function DroneProfilePage() {
 
         {/* ── Notes ── */}
         <div className="bg-gray-800/40 border border-gray-700 rounded-xl p-5 space-y-3">
-          <h2 className="text-sm font-semibold text-gray-300">Notes</h2>
+          <h2 className="text-sm font-semibold text-gray-300">{t('section_notes')}</h2>
           <textarea
             value={editingDrone.notes ?? ''}
             onChange={e => updateField('notes', e.target.value)}
@@ -470,7 +472,7 @@ export default function DroneProfilePage() {
         </div>
 
         <p className="text-xs text-gray-600 text-center">
-          Profile is saved automatically and used for smart preset recommendations.
+          {t('help_profile_autosave')}
         </p>
       </div>
     );
@@ -486,13 +488,13 @@ export default function DroneProfilePage() {
         <div className="flex items-center gap-3">
           <Cpu size={22} className="text-cyan-400 shrink-0"/>
           <div>
-            <h1 className="text-xl font-bold text-white">My Drones</h1>
+            <h1 className="text-xl font-bold text-white">{t('title_drone_profiles')}</h1>
             <p className="text-sm text-gray-400">{profiles.length} drone profile{profiles.length !== 1 ? 's' : ''}</p>
           </div>
         </div>
         <button onClick={handleAddDrone}
           className="flex items-center gap-1.5 text-sm font-medium px-4 py-2 rounded-lg bg-violet-700 hover:bg-violet-600 text-white transition-colors">
-          <Plus size={14}/> Add Drone
+          <Plus size={14}/> {t('btn_add_drone')}
         </button>
       </div>
 

@@ -3,6 +3,7 @@ import { useData } from '../../context/DataContext';
 import { useLang } from '../../i18n/LangContext';
 import { Upload, FileText, X, Check, Terminal, Database, Usb, Loader2 } from 'lucide-react';
 import { isSerialSupported, connectToFC, enterCLIMode, sendAndCapture, disconnectFC } from '../../lib/serialHelper';
+import DroneProfileModal from '../DroneProfileModal';
 
 export default function FileUpload({ compact = false }) {
   const { cliParsed, bbParsed, loadCLI, loadBlackbox, errors } = useData();
@@ -13,6 +14,9 @@ export default function FileUpload({ compact = false }) {
   const [showPaste, setShowPaste] = useState(false);
   const [serialStatus, setSerialStatus] = useState(null); // null | 'connecting' | 'reading' | 'done' | 'error'
   const [serialError, setSerialError] = useState('');
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [pendingBbData, setPendingBbData] = useState(null); // { data, fileName }
+  const [detectedInfo, setDetectedInfo] = useState(null);
   const cliRef = useRef(null);
   const bbRef = useRef(null);
 
@@ -22,18 +26,81 @@ export default function FileUpload({ compact = false }) {
     reader.readAsText(file);
   }, [loadCLI]);
 
+  // Extract basic info from BBL header without full decode
+  const extractDetectedInfo = useCallback((data, fileName) => {
+    const info = {};
+    if (data instanceof ArrayBuffer) {
+      try {
+        const headerBytes = new Uint8Array(data, 0, Math.min(data.byteLength, 4096));
+        const headerText = new TextDecoder('ascii', { fatal: false }).decode(headerBytes);
+        const lines = headerText.split('\n');
+        for (const line of lines) {
+          const m = line.match(/^H\s+(.+?):(.+)/);
+          if (m) {
+            const key = m[1].trim();
+            const val = m[2].trim();
+            if (key === 'Craft name') info.craftName = val;
+            if (key === 'Firmware revision') info.bfVersion = val.replace(/^Betaflight\s*/i, '').split(' ')[0];
+            if (key === 'Board information') info.fcTarget = val;
+            if (key === 'Firmware type') info.fcTarget = val;
+          }
+        }
+      } catch { /* ignore header parse errors */ }
+    } else if (typeof data === 'string') {
+      const lines = data.split('\n').slice(0, 50);
+      for (const line of lines) {
+        const m = line.match(/^H\s+(.+?):(.+)/);
+        if (m) {
+          const key = m[1].trim();
+          const val = m[2].trim();
+          if (key === 'Craft name') info.craftName = val;
+          if (key === 'Firmware revision') info.bfVersion = val.replace(/^Betaflight\s*/i, '').split(' ')[0];
+          if (key === 'Board information') info.fcTarget = val;
+          if (key === 'Firmware type') info.fcTarget = val;
+        }
+      }
+    }
+    return Object.keys(info).length > 0 ? info : null;
+  }, []);
+
   const handleBbFile = useCallback((file) => {
     const name = file.name.toLowerCase();
     const isBbl = name.endsWith('.bbl') || name.endsWith('.bfl');
     const reader = new FileReader();
+
+    reader.onload = (e) => {
+      const data = e.target.result;
+      const detected = extractDetectedInfo(data, file.name);
+      setPendingBbData({ data, fileName: file.name });
+      setDetectedInfo(detected);
+      setShowProfileModal(true);
+    };
+
     if (isBbl) {
-      reader.onload = (e) => loadBlackbox(e.target.result, file.name);
       reader.readAsArrayBuffer(file);
     } else {
-      reader.onload = (e) => loadBlackbox(e.target.result, file.name);
       reader.readAsText(file);
     }
-  }, [loadBlackbox]);
+  }, [extractDetectedInfo]);
+
+  const handleProfileConfirm = useCallback(() => {
+    setShowProfileModal(false);
+    if (pendingBbData) {
+      loadBlackbox(pendingBbData.data, pendingBbData.fileName);
+      setPendingBbData(null);
+      setDetectedInfo(null);
+    }
+  }, [pendingBbData, loadBlackbox]);
+
+  const handleProfileClose = useCallback(() => {
+    // User dismissed modal — still load the blackbox data
+    setShowProfileModal(false);
+    if (pendingBbData) {
+      loadBlackbox(pendingBbData.data, pendingBbData.fileName);
+      setPendingBbData(null);
+      setDetectedInfo(null);
+    }
+  }, [pendingBbData, loadBlackbox]);
 
   const onDrop = (setter, handler) => (e) => {
     e.preventDefault();
@@ -84,6 +151,14 @@ export default function FileUpload({ compact = false }) {
   const showSerial = isSerialSupported();
 
   return (
+    <>
+    {showProfileModal && (
+      <DroneProfileModal
+        onConfirm={handleProfileConfirm}
+        onClose={handleProfileClose}
+        detectedInfo={detectedInfo}
+      />
+    )}
     <div className={`grid ${compact ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2'} gap-4`}>
       {/* CLI Dump Input */}
       <div>
@@ -208,5 +283,6 @@ export default function FileUpload({ compact = false }) {
         {bbError && <p className="text-xs text-red-400 mt-1">{bbError.message}</p>}
       </div>
     </div>
+    </>
   );
 }

@@ -16,7 +16,7 @@
   },
   "build": {
     "appId": "com.iflyfpv.tuning-assist",
-    "productName": "iFlyQuad Tuning Assist",
+    "productName": "Betaflight Tuning Assist",
     "copyright": "Copyright © 2026 Hanif Pratama",
     "icon": "public/icon",
     "directories": {
@@ -51,7 +51,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "iFlyQuad Tuning Assist"
+      "shortcutName": "Betaflight Tuning Assist"
     },
     "mac": {
       "target": [
@@ -62,7 +62,7 @@
       "category": "public.app-category.utilities"
     },
     "dmg": {
-      "title": "iFlyQuad Tuning Assist"
+      "title": "Betaflight Tuning Assist"
     },
     "linux": {
       "target": [

@@ -406,7 +406,7 @@ export const COMMUNITY_RATES = [
   },
   // ── BEGINNERS ────────────────────────────────────────────────────
   {
-    id: 'beginner-safe', name: 'Beginner Safe', pilotName: 'iFlyQuad Recommended',
+    id: 'beginner-safe', name: 'Beginner Safe', pilotName: 'Recommended',
     quadType: 'freestyle', rateType: 'actual', source: 'community',
     tags: ['beginner', 'safe', 'slow', 'learning'],
     notes: 'Low rates for beginners. Forgiving, slow, easy to control.',
@@ -416,7 +416,7 @@ export const COMMUNITY_RATES = [
     thr_mid: 0.5, thr_expo: 0.2, createdAt: '2024-01-01T00:00:00.000Z',
   },
   {
-    id: 'intermediate-step', name: 'Intermediate Step', pilotName: 'iFlyQuad Recommended',
+    id: 'intermediate-step', name: 'Intermediate Step', pilotName: 'Recommended',
     quadType: 'freestyle', rateType: 'actual', source: 'community',
     tags: ['intermediate', 'progression', 'medium'],
     notes: 'Good step up from beginner rates. Learning flips and rolls.',

@@ -262,7 +262,7 @@ export function extractTuningParams(parsed) {
 
 // Generate CLI commands from modifications
 export function generateCLI(changes, profileNum = null) {
-  const lines = ['# Betaflight Tuning Assist by iFlyQuad', `# Generated: ${new Date().toISOString()}`, '', 'batch start', ''];
+  const lines = ['# Betaflight Tuning Assist', `# Generated: ${new Date().toISOString()}`, '', 'batch start', ''];
   
   if (profileNum !== null && profileNum !== undefined) {
     lines.push(`profile ${profileNum}`, '');

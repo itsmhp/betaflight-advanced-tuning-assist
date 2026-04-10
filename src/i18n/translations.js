@@ -9,8 +9,8 @@ const t = {
   en: {
     // App
     appName: 'Betaflight Tuning Assist',
-    appSubtitle: 'Advanced flight controller analysis powered by iFlyQuad',
-    by: 'by iFlyQuad',
+    appSubtitle: 'Advanced flight controller analysis',
+    by: '',
     version: 'v1.0',
 
     // Navigation
@@ -641,8 +641,8 @@ const t = {
   id: {
     // App
     appName: 'Betaflight Tuning Assist',
-    appSubtitle: 'Analisis flight controller canggih oleh iFlyQuad',
-    by: 'oleh iFlyQuad',
+    appSubtitle: 'Analisis flight controller canggih',
+    by: '',
     version: 'v1.0',
 
     // Navigation
@@ -1271,8 +1271,8 @@ const t = {
   es: {
     // App
     appName: 'Betaflight Tuning Assist',
-    appSubtitle: 'Análisis avanzado de controlador de vuelo por iFlyQuad',
-    by: 'por iFlyQuad',
+    appSubtitle: 'Análisis avanzado de controlador de vuelo',
+    by: '',
     version: 'v1.0',
 
     // Navigation
@@ -1902,8 +1902,8 @@ const t = {
   de: {
     // App
     appName: 'Betaflight Tuning Assist',
-    appSubtitle: 'Erweiterte Flugcontroller-Analyse von iFlyQuad',
-    by: 'von iFlyQuad',
+    appSubtitle: 'Erweiterte Flugcontroller-Analyse',
+    by: '',
     version: 'v1.0',
 
     // Navigation

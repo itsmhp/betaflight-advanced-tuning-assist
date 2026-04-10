@@ -2,7 +2,7 @@
 
 <div align="center">
 
-# iFlyQuad — Betaflight Advanced Tuning Assist
+# Betaflight Tuning Assist — Betaflight Advanced Tuning Assist
 
 **The most comprehensive free, open-source Betaflight tuning assistant.**  
 Upload your blackbox log and CLI dump to get guided, evidence-based recommendations with ready-to-paste CLI commands.
@@ -44,7 +44,7 @@ Upload your blackbox log and CLI dump to get guided, evidence-based recommendati
 
 ## What Makes This Different
 
-| Feature | iFlyQuad | PIDtoolbox | FPVtune | BF Explorer |
+| Feature | Betaflight Tuning Assist | PIDtoolbox | FPVtune | BF Explorer |
 |---------|:--------:|:----------:|:-------:|:-----------:|
 | Free & open-source | ✅ | ❌ (paywall) | ❌ ($9–20) | ✅ |
 | Browser-based | ✅ | ❌ (MATLAB) | ✅ | ✅ |
@@ -111,9 +111,9 @@ Pre-built binaries are available on the [Releases page](https://github.com/itsmh
 
 | Platform | File |
 |----------|------|
-| Windows (installer) | `iFlyQuad-Tuning-Assist-Setup.exe` |
-| Windows (portable) | `iFlyQuad-Tuning-Assist-Portable.exe` |
-| macOS | `iFlyQuad-Tuning-Assist.dmg` |
+| Windows (installer) | `Betaflight Tuning Assist-Tuning-Assist-Setup.exe` |
+| Windows (portable) | `Betaflight Tuning Assist-Tuning-Assist-Portable.exe` |
+| macOS | `Betaflight Tuning Assist-Tuning-Assist.dmg` |
 
 ---
 
@@ -446,3 +446,4 @@ Made with ❤️ for the FPV community by **Hanif Pratama**
 [mhp.hanif5@gmail.com](mailto:mhp.hanif5@gmail.com) · [GitHub](https://github.com/itsmhp)
 
 </div>
+

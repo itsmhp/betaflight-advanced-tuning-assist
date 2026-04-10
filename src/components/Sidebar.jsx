@@ -55,7 +55,7 @@ export default function Sidebar() {
       {/* Header */}
       <div className="p-4 border-b border-violet-900/20">
         <h1 className="text-sm font-bold tracking-wide accent-gradient">BETAFLIGHT</h1>
-        <h2 className="text-xs text-gray-400">Tuning Assist <span className="text-violet-400">by iFlyQuad</span></h2>
+        <h2 className="text-xs text-gray-400">Tuning Assist</h2>
       </div>
 
       {/* Nav Items */}
@@ -153,7 +153,7 @@ export default function Sidebar() {
             ))}
           </div>
         )}
-        <p className="text-[10px] text-gray-700 text-center mt-1">v1.0 — iFlyQuad</p>
+        <p className="text-[10px] text-gray-700 text-center mt-1">v1.0</p>
       </div>
     </nav>
   );

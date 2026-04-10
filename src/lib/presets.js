@@ -5,7 +5,7 @@
  *           5" race Â· 6" LR Â· 7" LR
  * Each size: 4 levels â€” low | medium | high | ultra
  *
- * Based on community tuning knowledge + iFlyQuad betaflight-advanced-tuning
+ * Based on community tuning knowledge + betaflight-advanced-tuning
  */
 
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
